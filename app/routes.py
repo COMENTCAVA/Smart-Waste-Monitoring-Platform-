@@ -17,6 +17,21 @@ from .utils.image_utils import compress_image
 
 main_bp = Blueprint('main', __name__)
 
+from flask import (
+    session, request, redirect, url_for, current_app, abort
+)
+
+
+# ─── Système de multi-langue ───
+
+@main_bp.route('/lang/<lang_code>')
+def set_language(lang_code):
+    if lang_code not in current_app.config['LANGUAGES']:
+        abort(404)
+    session['lang'] = lang_code
+    return redirect(request.referrer or url_for('main.home'))
+
+# ────────────────────────────────
 
 @main_bp.route('/', methods=['GET'])
 def home():
@@ -26,7 +41,6 @@ def home():
 def map_view():
     """Affiche la carte EXIF-géolocalisée."""
     return render_template('map.html')
-
 
 @main_bp.route('/upload', methods=['POST'])
 def upload():
@@ -84,6 +98,52 @@ def upload():
     )
     return redirect(url_for('main.dashboard'))
 
+import threading, random
+from flask import jsonify
+from evaluate_model_optimized import classify_batch, load_data
+from app.models import Setting
+from . import db
+from app import recompute_all_predictions
+from app.utils.classification_rules import DEFAULTS
+
+@main_bp.route('/settings/optimize', methods=['POST'])
+def optimize_settings():
+    """
+    Lance en arrière-plan la recherche aléatoire des meilleurs seuils,
+    met à jour la table Setting, et relance recompute_all_predictions().
+    """
+    def worker():
+        df = load_data()
+        N_TRIALS = 100_000
+        best = {'acc': 0.0}
+        for _ in range(N_TRIALS):
+            B  = random.uniform(0,   255)
+            S  = random.uniform(50e3, 500e3)
+            C  = random.uniform(0,   200)
+            E  = random.uniform(100, 50e3)
+            D  = random.uniform(0.1, 0.7)
+            SG = random.uniform(0,  300)
+            acc = classify_batch(df, B, S, C, E, D, SG)
+            if acc > best['acc']:
+                best.update(acc=acc, B=B, S=S, C=C, E=E, D=D, SG=SG)
+
+        # mise à jour en base
+        keys = [
+            'BRIGHTNESS_THRESHOLD', 'SIZE_THRESHOLD', 'CONTRAST_THRESHOLD',
+            'EDGES_THRESHOLD', 'DARK_RATIO_THRESHOLD', 'STD_GRAY_THRESHOLD'
+        ]
+        vals = [best['B'], best['S'], best['C'], best['E'], best['D'], best['SG']]
+        for key, val in zip(keys, vals):
+            setting = Setting.query.get(key)
+            if setting:
+                setting.value = val
+            else:
+                db.session.add(Setting(key=key, value=val))
+        db.session.commit()
+        recompute_all_predictions()
+
+    threading.Thread(target=worker, daemon=True).start()
+    return jsonify(success=True)
 
 @main_bp.route('/dashboard', methods=['GET'])
 def dashboard():
@@ -169,26 +229,23 @@ def settings():
     return render_template('settings.html', settings=data)
 
 
-@main_bp.route('/annotate/<int:image_id>', methods=['GET', 'POST'])
-def annotate(image_id):
-    img = Image.query.get_or_404(image_id)
+import tempfile
+@main_bp.route('/api/extract_features', methods=['POST'])
+def api_extract_features():
+    img = request.files.get('image')
+    if not img:
+        return jsonify({"error": "No image provided"}), 400
 
-    if request.method == 'POST':
-        label = request.form.get('label')
-        img.label = label
-        db.session.commit()
+    suffix = os.path.splitext(img.filename)[1]
+    tmpf = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
+    img.save(tmpf.name)
+    tmpf.close()
 
-        # Passe à la prochaine image non annotée
-        next_img = Image.query.filter(Image.label.is_(None)).first()
-        if next_img:
-            return redirect(
-                url_for('main.annotate', image_id=next_img.id)
-            )
-        flash("Toutes les images sont annotées !", 'info')
-        return redirect(url_for('main.dashboard'))
+    features = extract_image_features(tmpf.name)
 
-    # GET → formulaire d’annotation
-    return render_template('annotate.html', img=img)
+    os.unlink(tmpf.name)
+
+    return jsonify(features)
 
 
 # ──────────────────────────────────────────────────────────────────────────────

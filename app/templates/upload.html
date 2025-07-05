@@ -1,71 +1,303 @@
-<!-- app/templates/upload.html -->
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <title>Upload multiple – WDP</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light p-4">
-  <nav class="navbar navbar-expand bg-white shadow-sm mb-4">
-    <div class="container">
-      <a class="navbar-brand" href="{{ url_for('main.home') }}">Upload</a>
-      <a class="navbar-brand" href="{{ url_for('main.dashboard') }}">Dashboard</a>
-      <a class="navbar-brand" href="{{ url_for('main.settings') }}">Paramètres</a>
+{% extends 'base.html' %}
+{% block title %}Uploader des images{% endblock %}
+
+{% block content %}
+<div class="bg-white p-4 rounded shadow-sm" style="max-width:600px; margin:auto;">
+  <h2 class="mb-4">{{ _('Uploader plusieurs images') }}</h2>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat,msg in messages %}
+      <div class="alert alert-{{ 'danger' if cat == 'error' else 'success' }}">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <form id="uploadForm"
+        action="{{ url_for('main.upload') }}"
+        method="post"
+        enctype="multipart/form-data">
+    <fieldset class="mb-3">
+      <legend>{{ _('État de toutes les images :') }}</legend>
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" type="radio" name="label"
+               id="empty" value="Vide" required>
+        <label class="form-check-label" for="empty">{{ _('Vide') }}</label>
+      </div>
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" type="radio" name="label"
+               id="full" value="Pleine">
+        <label class="form-check-label" for="full">{{ _('Pleine') }}</label>
+      </div>
+    </fieldset>
+
+    <div class="mb-3">
+      <label for="images" class="form-label">{{ _('Sélectionnez vos images') }}</label>
+      <input class="form-control" type="file" id="images"
+             name="images" accept="image/*" multiple required>
+      <div class="form-text">{{ _('Ctrl/Cmd ou ⇧ pour en sélectionner plusieurs') }}</div>
     </div>
-  </nav>
-  <div class="container" style="max-width:600px;">
-    <h2 class="mb-4">Uploader plusieurs images</h2>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% for cat,msg in messages %}
-        <div class="alert alert-{{ 'danger' if cat=='error' else 'success' }}">{{ msg }}</div>
-      {% endfor %}
-    {% endwith %}
+    <!-- Barre de progression (cachée par défaut) -->
+    <div class="progress mb-3" style="display:none;" id="uploadProgressContainer">
+      <div id="uploadProgressBar"
+           class="progress-bar"
+           role="progressbar"
+           style="width: 0%;"
+           aria-valuemin="0"
+           aria-valuemax="100">
+        0%
+      </div>
+    </div>
 
-    <form action="{{ url_for('main.upload') }}" method="post" enctype="multipart/form-data">
-      <fieldset class="mb-3">
-        <legend>État de toutes les images :</legend>
-        <div class="form-check form-check-inline">
-          <input class="form-check-input" type="radio" name="label" id="empty" value="Vide" required>
-          <label class="form-check-label" for="empty">Vide</label>
-        </div>
-        <div class="form-check form-check-inline">
-          <input class="form-check-input" type="radio" name="label" id="full" value="Pleine">
-          <label class="form-check-label" for="full">Pleine</label>
-        </div>
-      </fieldset>
+    <button type="submit" class="btn btn-primary">{{ _('Envoyer tout') }}</button>
+  </form>
+</div>
 
-      <div class="mb-3">
-        <label for="images" class="form-label">Sélectionnez vos images</label>
-        <input class="form-control" type="file" id="images" name="images" accept="image/*" multiple required>
-        <div class="form-text">Vous pouvez en sélectionner plusieurs (Ctrl ⌃ ou ⇧).</div>
+  <!-- ─── Section Annotation Dynamique ───────────────────────────────── -->
+  <div class="bg-white p-4 rounded shadow-sm mt-5" style="max-width:600px; margin:auto;">
+    <h2 class="mb-4">{{ _('Annotation dynamique') }}</h2>
+
+    <!-- Sélecteur de fichiers multiples -->
+    <div class="mb-3">
+      <label for="anno-files" class="form-label">
+        {{ _('Sélectionnez vos images') }}
+      </label>
+      <input
+        type="file"
+        id="anno-files"
+        accept="image/*"
+        multiple
+        class="form-control"
+      >
+      <div class="form-text">
+        {{ _('Elles seront présentées UNE à UNE à annoter.') }}
+      </div>
+    </div>
+
+    <!-- Widget d’annotation (caché tant qu’on n’a pas choisi de fichiers) -->
+    <div id="anno-widget" style="display:none;">
+      <!-- Aperçu de l’image -->
+      <img
+        id="anno-preview"
+        class="img-fluid mb-3"
+        alt="{{ _('Aperçu de l’image') }}"
+      >
+
+      <!-- Nom du fichier -->
+      <p>
+        <strong>{{ _('Fichier') }} :</strong>
+        <span id="anno-filename"></span>
+      </p>
+
+      <!-- ── Affichage des features ── -->
+      <div id="anno-features" class="mb-3" style="display:none;">
+        <h6>{{ _('Caractéristiques') }}</h6>
+        <ul class="list-unstyled">
+          <li>{{ _('Taille') }} : <span id="feat-size">–</span> octets</li>
+          <li>{{ _('Contraste') }} : <span id="feat-contrast">–</span></li>
+          <li>{{ _('Contours') }} : <span id="feat-edges">–</span></li>
+          <li>{{ _('Ratio occupation') }} : <span id="feat-occupancy">–</span></li>
+        </ul>
       </div>
 
-      <button type="submit" class="btn btn-primary">Envoyer tout</button>
-    </form>
-  </div>
+      <!-- Choix du label -->
+      <div class="mb-3">
+        <div class="form-check form-check-inline">
+          <input
+            class="form-check-input"
+            type="radio"
+            name="anno-label"
+            id="anno-vide"
+            value="Vide"
+          >
+          <label class="form-check-label" for="anno-vide">
+            {{ _('Vide') }}
+          </label>
+        </div>
+        <div class="form-check form-check-inline">
+          <input
+            class="form-check-input"
+            type="radio"
+            name="anno-label"
+            id="anno-pleine"
+            value="Pleine"
+          >
+          <label class="form-check-label" for="anno-pleine">
+            {{ _('Pleine') }}
+          </label>
+        </div>
+      </div>
 
+      <!-- Boutons Suivant / Arrêter -->
+      <div>
+        <button id="anno-next" class="btn btn-primary">
+          {{ _('Suivant') }}
+        </button>
+        <button id="anno-stop" class="btn btn-secondary">
+          {{ _('Arrêter') }}
+        </button>
+      </div>
+    </div>
+  </div>
+  <!-- ──────────────────────────────────────────────────────────────────── -->
+{% endblock %}
+
+{% block scripts %}
 <script>
-  document.addEventListener('keydown', e => {
-    // v → cocher “Vide”, p → cocher “Pleine”
-    if (e.key === 'v' || e.key === 'V') {
-      document.querySelector('input[name=label][value=Vide]').checked = true;
+// Raccourcis clavier V/P + Enter pour soumission rapide
+document.addEventListener('keydown', e => {
+  if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+    if (e.key.toLowerCase() === 'v') {
+      document.getElementById('empty').checked = true;
     }
-    if (e.key === 'p' || e.key === 'P') {
-      document.querySelector('input[name=label][value=Pleine]').checked = true;
+    if (e.key.toLowerCase() === 'p') {
+      document.getElementById('full').checked = true;
     }
-    // Enter → soumettre si un label et un fichier sont sélectionnés
     if (e.key === 'Enter') {
-      const file = document.querySelector('input[type=file]').files.length;
-      const lab  = document.querySelector('input[name=label]:checked');
-      if (file > 0 && lab) {
+      const files = document.getElementById('images').files.length;
+      const lab   = document.querySelector('input[name=label]:checked');
+      if (files > 0 && lab) {
         e.preventDefault();
-        document.querySelector('form').submit();
+        document.getElementById('uploadForm').dispatchEvent(new Event('submit'));
       }
     }
-  });
+  }
+});
+
+// Upload asynchrone + barre de progression
+document.getElementById('uploadForm').addEventListener('submit', function(evt) {
+  evt.preventDefault();  // Empêche le submit classique
+
+  const form     = this;
+  const url      = form.action;
+  const formData = new FormData(form);
+  const xhr      = new XMLHttpRequest();
+
+  xhr.open('POST', url);
+
+  // Afficher la barre de progression dès le premier progress event
+  const container = document.getElementById('uploadProgressContainer');
+  const bar       = document.getElementById('uploadProgressBar');
+
+  xhr.upload.onprogress = function(event) {
+    if (event.lengthComputable) {
+      const percent = Math.round(event.loaded / event.total * 100);
+      if (container.style.display === 'none') {
+        container.style.display = 'block';
+      }
+      bar.style.width       = percent + '%';
+      bar.textContent       = percent + '%';
+    }
+  };
+
+  xhr.onload = function() {
+    if (xhr.status >= 200 && xhr.status < 300) {
+      // redirige vers le dashboard à la fin
+      window.location.href = "{{ url_for('main.dashboard') }}";
+    } else {
+      alert('Une erreur est survenue pendant l’upload.');
+    }
+  };
+
+  xhr.onerror = function() {
+    alert('Échec de la requête. Vérifiez votre connexion.');
+  };
+
+  xhr.send(formData);
+});
 </script>
 
-</body>
-</html>
+<script>
+  document.getElementById('anno-files').addEventListener('change', function(e) {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+
+    let index = 0;
+    const widget   = document.getElementById('anno-widget');
+    const preview  = document.getElementById('anno-preview');
+    const filename = document.getElementById('anno-filename');
+    const nextBtn  = document.getElementById('anno-next');
+    const stopBtn  = document.getElementById('anno-stop');
+
+    widget.style.display = 'block';
+    loadImage(index);
+
+    function loadImage(i) {
+      const file = files[i];
+      filename.textContent = file.name;
+      // Preview
+      const reader = new FileReader();
+      reader.onload = evt => preview.src = evt.target.result;
+      reader.readAsDataURL(file);
+
+      // Réinitialiser radios
+      document.getElementById('anno-vide').checked  = false;
+      document.getElementById('anno-pleine').checked = false;
+
+      // Afficher le bloc features
+      const featBlock = document.getElementById('anno-features');
+      featBlock.style.display = 'block';
+
+      // Préparer FormData pour extraction
+      const fd = new FormData();
+      fd.append('image', file, file.name);
+
+      fetch("{{ url_for('main.api_extract_features') }}", {
+        method: 'POST',
+        body: fd
+      })
+      .then(r => r.json())
+      .then(f => {
+        document.getElementById('feat-size').textContent      = f.file_size ?? '–';
+        document.getElementById('feat-contrast').textContent  = f.contrast ?? '–';
+        document.getElementById('feat-edges').textContent     = f.edges_count ?? '–';
+        document.getElementById('feat-occupancy').textContent = f.occupancy_ratio?.toFixed(2) ?? '–';
+      })
+      .catch(err => {
+        console.error('Extraction features :', err);
+        // Optionnel : masquer ou indiquer une erreur
+      });
+    }
+
+    // ← On poste sur la même route /upload
+    nextBtn.onclick = async function(evt) {
+      evt.preventDefault();
+      const choice = document.querySelector('input[name="anno-label"]:checked');
+      if (!choice) {
+        return alert('{{ _("Veuillez choisir un label avant de passer à l’image suivante.") }}');
+      }
+
+      // Prépare FormData exactement comme votre formulaire principal
+      const fd = new FormData();
+      fd.append('label', choice.value);
+      fd.append('images', files[index], files[index].name);
+
+      try {
+        const resp = await fetch("{{ url_for('main.upload') }}", {
+          method: 'POST',
+          body: fd
+        });
+        if (!resp.ok) throw new Error(resp.statusText);
+      } catch (err) {
+        console.error(err);
+        return alert('{{ _("Erreur lors de l’enregistrement de l’image.") }}');
+      }
+
+      // Passe à l’image suivante
+      index++;
+      if (index < files.length) {
+        loadImage(index);
+      } else {
+        alert('{{ _("Toutes les images ont été annotées et enregistrées.") }}');
+        widget.style.display = 'none';
+        e.target.value = '';
+      }
+    };
+
+    stopBtn.onclick = function(evt) {
+      evt.preventDefault();
+      widget.style.display = 'none';
+      e.target.value = '';
+    };
+  });
+</script>
+{% endblock %}

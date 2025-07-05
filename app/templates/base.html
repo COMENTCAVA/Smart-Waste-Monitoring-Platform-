@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="fr" data-theme="{{ 'dark' if request.cookies.get('wdp-theme')=='dark' else '' }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+  <title>{% block title %}WDP – Mon Application{% endblock %}</title>
+
+  <!-- Bootstrap CSS -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+    integrity="sha384-…"
+    crossorigin="anonymous">
+
+  <!-- Google Fonts -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+
+  <!-- Bootstrap Icons -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
+    rel="stylesheet"
+    crossorigin="anonymous">
+
+  <!-- Votre CSS personnalisé (avec variables) -->
+  <link
+    href="{{ url_for('static', filename='css/style.css') }}"
+    rel="stylesheet">
+
+  <link rel="icon" type="image/png"
+      href="{{ url_for('static', filename='images/logo.png') }}">
+
+  {% block extra_head %}{% endblock %}
+
+  <style>
+     /* ─── Variables unifiées ───────────────────────────────────────────────── */
+    :root {
+      --c-bg:              #f8f9fa;
+      --c-text:            #212529;
+      --c-secondary:       #000000;
+      --c-primary:         #4F46E5;
+      --c-navbar-bg:       rgba(255, 255, 255, 0.75);
+      --c-navbar-shadow:   rgba(0, 0, 0, 0.1);
+    }
+
+    [data-theme="dark"] {
+      --c-bg:              #121212;
+      --c-text:            #e0e0e0;
+      --c-secondary:       #a1a1aa;
+      --c-primary:         #66bfff;
+      --c-navbar-bg:       rgba(30, 30, 30, 0.85);
+      --c-navbar-shadow:   rgba(0, 0, 0, 0.5);
+    }
+
+    body {
+      background-color: var(--c-bg) !important;
+      color:            var(--c-text) !important;
+      transition: background-color .3s, color .3s;
+    }
+
+    /* ─── Navbar améliorée ───────────────────────────────────────────── */
+    .navbar {
+      background-color: var(--c-navbar-bg) !important;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 2px 12px var(--c-navbar-shadow) !important;
+      padding: 0.5rem 1rem;
+    }
+
+    /* Retirer marges par défaut de BS sur .container à l’intérieur de la navbar */
+    .navbar .container {
+      max-width: none;
+      width: 100%;
+    }
+
+    /* Logo centré sans pointer-events sur desktop */
+    .navbar .navbar-brand {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      pointer-events: none;
+    }
+    .navbar {
+      height: 60px;
+      transition: transform .3s;
+    }
+
+    .navbar-logo{
+      height: 120px;
+      width: auto;
+    }
+
+    .navbar-logo:hover {
+      transform: scale(1.1);
+    }
+
+    /* Burger customisé */
+    .navbar-toggler {
+      border: none;
+    }
+    .navbar-toggler-icon {
+      filter: brightness(0) invert(0.6);
+    }
+
+    /* Liens nav */
+    .navbar .nav-link {
+      color: var(--c-secondary) !important;
+      font-weight: 500;
+      margin: 0 .5rem;
+      position: relative;
+      padding: .7rem 1rem;
+      transition: color .3s;
+    }
+    .navbar .nav-link::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      width: 0; height: 2px;
+      background: var(--c-primary);
+      border-radius: 1px;
+      bottom: 6px !important;
+      transition: width .3s, left .3s;
+    }
+    .navbar .nav-link:hover,
+    .navbar .nav-link.active {
+      color: var(--c-primary) !important;
+    }
+    .navbar .nav-link:hover::after,
+    .navbar .nav-link.active::after {
+      width: 100%; left: 0;
+    }
+
+    .flag-icon {
+      width: 1.25rem;      /* 20px */
+      height: auto;
+      display: inline-block;
+      vertical-align: middle;
+      border-radius: 2px;   /* léger arrondi si PNG */
+    }
+
+    /* Switch thème */
+    .form-check.form-switch {
+      margin-left: 1rem;
+    }
+    .form-check-input {
+      cursor: pointer;
+      transition: transform .4s;
+    }
+    .form-check-input:checked {
+      transform: rotate(180deg);
+    }
+
+    /* Tous les liens de la navbar en bold */
+    .navbar .nav-link {
+      font-weight: 600 !important;
+    }
+
+    /* Le label du switch thème aussi */
+    .navbar .form-check-label {
+      font-weight: 600 !important;
+    }
+
+    .flag-icon {
+      width: 30px;
+    }
+
+
+    /* ─── Responsive tweaks ─────────────────────────────────────────── */
+    @media (max-width: 992px) {
+      .navbar .navbar-brand {
+        position: static;
+        transform: none;
+        pointer-events: auto;
+        margin-bottom: .5rem;
+      }
+      .navbar .navbar-nav {
+        text-align: center;
+        margin-top: .5rem;
+      }
+    }
+  </style>
+</head>
+<body class="font-inter">
+  <!-- Navbar commune -->
+  <nav class="navbar navbar-expand sticky-top">
+    <div class="container d-flex align-items-center position-relative">
+      <!-- Upload à gauche -->
+      <a
+        href="{{ url_for('main.home') }}"
+        class="nav-link {% if request.endpoint=='main.home' %}active{% endif %} pe-3"
+      >
+        {{ _('Upload') }}
+      </a>
+
+      <!-- Sélecteur de langue -->
+      <ul class="navbar-nav ms-3">
+        <li class="nav-item dropdown">
+          <a
+            class="nav-link dropdown-toggle text-decoration-none"
+            href="#"
+            id="langDropdown"
+            role="button"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
+            <img
+              src="{{ url_for('static', filename='images/flags/' ~ get_locale() ~ '.png') }}"
+              alt="{{ get_locale().upper() }}"
+              class="flag-icon"
+            />
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end"
+              aria-labelledby="langDropdown">
+            {% for code in config['LANGUAGES'] %}
+            <li>
+              <a class="dropdown-item {% if get_locale()==code %}active{% endif %}"
+                 href="{{ url_for('main.set_language', lang_code=code) }}">
+                <!-- Ici le drapeau -->
+                <img src="{{ url_for('static', filename='images/flags/' ~ code ~ '.png') }}"
+                     alt="{{ code }}" class="me-1" style="width:20px;"/>
+                {{ code.upper() }}
+              </a>
+            </li>
+            {% endfor %}
+          </ul>
+        </li>
+      </ul>
+
+      <!-- Logo centré -->
+      <a
+        class="navbar-brand position-absolute top-50 start-50 translate-middle"
+        href="{{ url_for('main.home') }}"
+        style="pointer-events: none;"
+      >
+        <img
+          src="{{ url_for('static', filename='images/logo.png') }}"
+          alt="WDP Logo"
+          class="navbar-logo"
+        >
+      </a>
+
+      <!-- Liens + switch thème à droite -->
+      <ul class="navbar-nav ms-auto d-flex align-items-center">
+        <li class="nav-item">
+          <a
+            href="{{ url_for('main.dashboard') }}"
+            class="nav-link {% if request.endpoint=='main.dashboard' %}active{% endif %}"
+          >{{ _('Dashboard') }}</a>
+        </li>
+        <li class="nav-item">
+          <a
+            href="{{ url_for('main.map_view') }}"
+            class="nav-link {% if request.endpoint=='main.map_view' %}active{% endif %}"
+          >{{ _('Carte') }}</a>
+        </li>
+        <li class="nav-item">
+          <a
+            href="{{ url_for('main.settings') }}"
+            class="nav-link {% if request.endpoint=='main.settings' %}active{% endif %}"
+          >{{ _('Paramètres') }}</a>
+        </li>
+        <li class="nav-item d-flex align-items-center ms-3">
+          <div class="form-check form-switch mb-0">
+            <input class="form-check-input" type="checkbox" id="themeToggle">
+            <label class="form-check-label ms-1" for="themeToggle">🌙/☀️</label>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  {# Bloc fullpage pour la carte pleine écran #}
+  {% block fullpage %}{% endblock %}
+
+  <!-- Contenu spécifique à chaque page -->
+  <main class="container py-4">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Bootstrap JS Bundle -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-…"
+    crossorigin="anonymous"
+    defer
+  ></script>
+
+  {% block scripts %}{% endblock %}
+  <!-- Theme switcher -->
+  <script src="{{ url_for('static', filename='js/theme.js') }}" defer></script>
+</body>
+</html>

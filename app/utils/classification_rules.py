@@ -1,5 +1,6 @@
 # app/utils/classification_rules.py
 import numpy as np
+from app import db
 from app.models import Setting
 
 # Seuils par défaut (y compris STD_GRAY_THRESHOLD)
@@ -15,7 +16,7 @@ DEFAULTS = {
 }
 
 def get_threshold(key: str) -> float:
-    setting = Setting.query.get(key)
+    setting = db.session.get(Setting, key)
     return setting.value if setting else DEFAULTS[key]
 
 def classify_image(features: dict) -> str:
@@ -26,6 +27,8 @@ def classify_image(features: dict) -> str:
     E  = get_threshold('EDGES_THRESHOLD')
     D  = get_threshold('DARK_RATIO_THRESHOLD')
     SG = get_threshold('STD_GRAY_THRESHOLD')
+    O = get_threshold('OCCUPANCY_THRESHOLD')
+    H = get_threshold('HUE_RATIO_THRESHOLD')
 
     # 2) Extraction des valeurs
     r, g, b = (
@@ -59,10 +62,11 @@ def classify_image(features: dict) -> str:
         votes += 1
     if edges > E:
         votes += 1
-    if dark_ratio > D:    # ← on compare la variable locale
+    if dark_ratio > D:
         votes += 1
-    if std_gray > SG:     # ← on compare aussi std_gray au seuil dynamique
+    if std_gray > SG:
         votes += 1
+
 
     # 5) Seuil de vote (>=3 sur 5)
     return 'Pleine' if votes >= 3 else 'Vide'

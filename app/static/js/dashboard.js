@@ -5,24 +5,15 @@ console.log('📊 dashboard.js chargé');
 let currentPage = 1,
     hasNext     = true;
 
-// Helper pour fetch + erreurs
 async function fetchJSON(url) {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`HTTP ${res.status} pour ${url}`);
   return res.json();
 }
 
-// 1) Charts + résumé global
+//Ici les fonctions charts.js
 async function initCharts() {
-  // 1.1 – Stats globales
-  const ov = await fetchJSON('/api/stats/overall');
-  document.getElementById('overallStats').innerHTML = `
-    <div class="col"><h6>Total</h6><strong>${ov.total}</strong></div>
-    <div class="col"><h6>Vide (manuel)</h6><strong>${ov.manual_empty_pct}%</strong></div>
-    <div class="col"><h6>Pleine (manuel)</h6><strong>${ov.manual_full_pct}%</strong></div>
-    <div class="col"><h6>Accuracy</h6><strong>${ov.correct_pct}%</strong></div>`;
-
-  // 1.2 – Camembert manuel
+  // Camembert manuel
   const ld = await fetchJSON('/api/stats/label_distribution');
   new Chart(
     document.getElementById('labelChart'),
@@ -43,7 +34,7 @@ async function initCharts() {
     }
   );
 
-  // 1.3 – Bar charts configurés
+  // Bar charts
   const cfg = [
     { id:'fileSizeChart', api:'/api/stats/file_size_distribution', label:'Images',   color:'#ffc107' },
     { id:'contrastChart', api:'/api/stats/contrast_distribution',  label:'Contraste',color:'#dc3545' },
@@ -69,7 +60,7 @@ async function initCharts() {
   }
 }
 
-// 2) Chargement des images + tooltips + suppression
+// 3) Chargement paginé des images + suppression AJAX
 async function loadImages(reset = false) {
   if (reset) {
     currentPage = 1;
@@ -78,10 +69,10 @@ async function loadImages(reset = false) {
   }
   if (!hasNext) return;
 
-  // Construire l’URL avec filtres
+  // URL avec filtres
   const params = new URLSearchParams({
-    page: currentPage,
-    per_page: 21,
+    page:         currentPage,
+    per_page:     21,
     date_from:    document.getElementById('filterDateFrom').value,
     date_to:      document.getElementById('filterDateTo').value,
     label_manual: document.getElementById('filterManual').value,
@@ -91,64 +82,100 @@ async function loadImages(reset = false) {
   const cont = document.getElementById('imagesContainer');
 
   resp.images.forEach(img => {
-    // Choix de la couleur des badges
-    const manualClass = img.label === 'Pleine' ? 'bg-success' : 'bg-primary';
-    const autoClass   = img.predicted_label === 'Pleine' ? 'bg-success' : 'bg-primary';
+    const col = document.createElement('div');
+    col.className = 'col';
 
-    const card = document.createElement('div');
-    card.className = 'col';
-    card.innerHTML = `
-      <div class="card h-100 shadow-sm"
-           data-bs-toggle="tooltip"
-           title="
-Taille          : ${img.file_size}
-Contraste       : ${img.contrast}
-Contours        : ${img.edges_count}
-Date upload     : ${new Date(img.uploaded_at).toLocaleString()}
-           ">
-        <img src="${img.url}"
-             class="card-img-top"
-             style="height:180px;object-fit:cover">
-        <div class="card-body">
-          <span class="badge ${manualClass} me-1">
-            Manuel: ${img.label}
+    // États « vide » / « pleine »
+    const mState = img.label === 'Pleine'           ? 'pleine' : 'vide';
+    const aState = img.predicted_label === 'Pleine' ? 'pleine' : 'vide';
+
+    // HTML de la card
+    col.innerHTML = `
+      <div class="image-card position-relative">
+        <!-- 1) Bouton supprimer en haut à droite -->
+        <button
+          class="image-card__delete"
+          data-id="${img.id}"
+          aria-label="Supprimer cette image"
+        >
+          <i class="bi bi-trash-fill"></i>
+        </button>
+
+        <!-- 2) Image lazy + tooltip -->
+        <img src="${img.url}" loading="lazy"
+             class="w-100"
+             data-bs-toggle="tooltip"
+             title="
+Taille      : ${img.file_size} octets
+Contraste   : ${img.contrast}
+Contours    : ${img.edges_count}
+Date upload : ${new Date(img.uploaded_at).toLocaleString()}
+             "
+             alt="Image">
+
+        <!-- 3) Badges overlay bas -->
+        <div class="image-card__info">
+          <span class="image-card__badge-inline image-card__badge-inline--${mState}"
+                title="Étiquette manuelle">
+            <i class="bi bi-person-lines-fill"></i>
+            ${img.label || 'Vide'}
           </span>
-          <span class="badge ${autoClass}">
-            Auto : ${img.predicted_label}
+          <span class="image-card__badge-inline image-card__badge-inline--${aState}"
+                title="Prédiction automatisée">
+            <i class="bi bi-robot"></i>
+            ${img.predicted_label || 'Vide'}
           </span>
         </div>
-        <div class="card-footer d-flex justify-content-end p-2">
-          <form method="post" action="/delete/${img.id}"
-                onsubmit="return confirm('Supprimer cette image ?');">
-            <button class="btn btn-sm btn-outline-danger">🗑️</button>
-          </form>
-        </div>
-      </div>`;
-    cont.appendChild(card);
+      </div>
+    `;
+
+    cont.appendChild(col);
   });
 
-  // (Re)initialiser les tooltips
+  // (Re)initialiser tooltips
   document.querySelectorAll('[data-bs-toggle="tooltip"]')
-    .forEach(el => new bootstrap.Tooltip(el));
+          .forEach(el => new bootstrap.Tooltip(el));
 
+  // Pagination
   hasNext = resp.has_next;
   currentPage++;
-
-  // Afficher ou masquer le bouton Charger plus
   document.getElementById('loadMore').style.display = hasNext ? 'block' : 'none';
 }
 
-// 3) Événement du bouton Charger plus et filtres
+// 4) Initialisation et événements
 window.addEventListener('DOMContentLoaded', () => {
+  // Charts + 1ère page d’images
   initCharts().catch(e => console.error('initCharts :', e));
   loadImages(true).catch(e => console.error('loadImages :', e));
 
+  // Filtrer
   document.getElementById('applyFilters')
     .addEventListener('click', e => {
       e.preventDefault();
       loadImages(true);
     });
 
+  // Charger plus
   document.getElementById('loadMore')
     .addEventListener('click', () => loadImages(false));
+
+  // Suppression AJAX déléguée
+  document.getElementById('imagesContainer')
+    .addEventListener('click', e => {
+      const btn = e.target.closest('.image-card__delete');
+      if (!btn) return;
+      const id = btn.dataset.id;
+      if (!confirm('Supprimer cette image ?')) return;
+
+      fetch(`/delete/${id}`, { method:'POST' })
+        .then(res => {
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          // on retire la colonne sans rechargement
+          btn.closest('.col').remove();
+        })
+        .catch(err => {
+          console.error('Suppression AJAX échouée :', err);
+          alert("Échec suppression, réessayez.");
+        });
+    });
 });

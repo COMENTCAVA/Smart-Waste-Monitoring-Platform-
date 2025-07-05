@@ -1,97 +1,76 @@
-<!-- app/templates/annotate.html -->
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Annoter une image</title>
-  <!-- Bootstrap 5 CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-        rel="stylesheet"
-        integrity="sha384-..." crossorigin="anonymous">
-  <!-- Optionnel : votre CSS perso -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-<body>
+{% extends 'base.html' %}
 
-  <!-- Navbar simple -->
-  <nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top">
-    <div class="container">
-      <a class="navbar-brand" href="{{ url_for('main.home') }}">🚀 WDP</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-              data-bs-target="#navbarNav" aria-controls="navbarNav"
-              aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ms-auto">
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('main.home') }}">Upload</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('main.dashboard') }}">Dashboard</a>
-          </li>
-        </ul>
-      </div>
-    </div>
-  </nav>
+{% block title %}Annoter une image{% endblock %}
 
-  <!-- Contenu principal -->
-  <div class="container py-5">
-    <div class="text-center">
-      <h2 class="mb-4">Annoter l’image : <strong>{{ img.filename }}</strong></h2>
-      <img src="{{ url_for('static', filename='images/'+img.filename) }}"
-           class="img-fluid mb-4 shadow-sm border"
-           style="max-height:60vh;" alt="Image à annoter">
-    </div>
-
-    <!-- Boutons d'annotation -->
-    <form method="post" class="d-flex justify-content-center gap-3 mb-5">
-      <button name="label" value="Vide"
-              class="btn btn-outline-primary btn-lg">Vide (V)</button>
-      <button name="label" value="Pleine"
-              class="btn btn-outline-success btn-lg">Pleine (P)</button>
-    </form>
-
-    <!-- Navigation précédant/suivant -->
-    <div class="d-flex justify-content-between">
-      <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">
-        ↩ Retour au Dashboard
-      </a>
-      <div>
-        {% if img.id > 1 %}
-        <a href="{{ url_for('main.annotate', image_id=img.id-1) }}"
-           class="btn btn-light me-2">← Précédent</a>
-        {% endif %}
-        <a href="{{ url_for('main.annotate', image_id=img.id+1) }}"
-           class="btn btn-light">Suivant →</a>
-      </div>
-    </div>
-  </div>
-
-  <!-- Bootstrap 5 JS Bundle -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
-          integrity="sha384-..." crossorigin="anonymous"></script>
-
-  <!-- Raccourcis clavier -->
-  <script>
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'v' || e.key === 'V') {
-      document.querySelector('button[value="Vide"]').click();
+{% block extra_head %}
+  <!-- Si vous voulez un peu de CSS spécifique à cette page -->
+  <style>
+    .annotation-container {
+      max-width: 600px;
+      margin: 2rem auto;
+      text-align: center;
     }
-    if (e.key === 'p' || e.key === 'P') {
-      document.querySelector('button[value="Pleine"]').click();
+    .annotation-container img {
+      width: 100%;
+      border-radius: 0.75rem;
+      box-shadow: 0 .5rem 1rem rgba(0,0,0,0.1);
+      margin-bottom: 1.5rem;
     }
-    if (e.key === 'ArrowLeft') {
-      const prev = document.querySelector('a.btn-light.me-2');
-      if (prev) window.location = prev.href;
+    .annotation-buttons > button {
+      width: 45%;
+      margin: 0 .5%;
+      font-size: 1.25rem;
+      padding: .75rem 1rem;
+      border-radius: .75rem;
+      transition: transform .1s ease;
     }
-    if (e.key === 'ArrowRight') {
-      const next = document.querySelectorAll('a.btn-light');
-      window.location = next[next.length - 1].href;
+    .annotation-buttons > button:active {
+      transform: scale(0.95);
     }
-  });
-  </script>
+  </style>
+{% endblock %}
 
-</body>
-</html>
+{% block content %}
+<div class="annotation-container bg-white p-4 rounded shadow-sm">
+  <h2 class="mb-4">Annoter l’image</h2>
+
+  <img
+    src="{{ url_for('static', filename='images/' + img.filename) }}"
+    alt="Image à annoter"
+    loading="lazy"
+  >
+
+  <form method="post" class="annotation-buttons d-flex justify-content-center">
+    <button
+      type="submit"
+      name="label"
+      value="Vide"
+      class="btn btn-outline-primary btn-lg"
+    >
+      Vide
+    </button>
+
+    <button
+      type="submit"
+      name="label"
+      value="Pleine"
+      class="btn btn-outline-success btn-lg"
+    >
+      Pleine
+    </button>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// 👇 Raccourcis clavier : V → “Vide”, P → “Pleine”
+document.addEventListener('keydown', e => {
+  if (['v','V','p','P'].includes(e.key)) {
+    e.preventDefault();
+    const val = (e.key.toLowerCase()==='v') ? 'Vide' : 'Pleine';
+    document.querySelector(`form button[value="${val}"]`).click();
+  }
+});
+</script>
+{% endblock %}
