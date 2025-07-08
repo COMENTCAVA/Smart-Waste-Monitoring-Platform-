@@ -23,12 +23,12 @@ class Image(db.Model):
     predicted_label = db.Column(db.String(50), nullable=True)
 
     # Nouveaux attributs pour extraction avancée
-    hist_r       = db.Column(JSON, nullable=True)    # histogramme R (256 bins)
-    hist_g       = db.Column(JSON, nullable=True)    # histogramme G (256 bins)
-    hist_b       = db.Column(JSON, nullable=True)    # histogramme B (256 bins)
-    hist_gray    = db.Column(JSON, nullable=True)    # histogramme niveaux de gris
-    contrast     = db.Column(db.Float, nullable=True)   # contraste = max(gray)-min(gray)
-    edges_count  = db.Column(db.Integer, nullable=True) # nombre de contours détectés
+    hist_r       = db.Column(JSON, nullable=True)
+    hist_g       = db.Column(JSON, nullable=True)
+    hist_b       = db.Column(JSON, nullable=True)
+    hist_gray    = db.Column(JSON, nullable=True)
+    contrast     = db.Column(db.Float, nullable=True)
+    edges_count  = db.Column(db.Integer, nullable=True)
     hist_h = db.Column(db.JSON, nullable=True)
     occupancy_ratio = db.Column(db.Float, nullable=True)
 
@@ -42,5 +42,24 @@ class Setting(db.Model):
     utilisées par classify_image().
     """
     __tablename__ = 'settings'
-    key   = db.Column(db.String(50), primary_key=True)  # ex. 'BRIGHTNESS_THRESHOLD'
-    value = db.Column(db.Float, nullable=False)         # valeur (float)
+    key   = db.Column(db.String(50), primary_key=True)
+    value = db.Column(db.Float, nullable=False)
+
+from flask_login import UserMixin
+from werkzeug.security import generate_password_hash, check_password_hash
+
+class User(UserMixin, db.Model):
+    __tablename__ = 'users'
+
+    id           = db.Column(db.Integer, primary_key=True)
+    username     = db.Column(db.String(64), unique=True, nullable=False)
+    email        = db.Column(db.String(120), unique=True, nullable=False)
+    password_hash= db.Column(db.String(128), nullable=False)
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(
+            password, method='pbkdf2:sha256', salt_length=16
+        )
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)

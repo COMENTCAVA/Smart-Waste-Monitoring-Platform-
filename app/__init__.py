@@ -4,26 +4,24 @@ from flask import Flask, session, request, current_app
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_babel import Babel, gettext
+from flask_login import LoginManager
 from sqlalchemy.exc import OperationalError
 from config import Config
 
-# ─── Extensions ─────────────────────────────────────────────────────────────
+# ─── Initialisation des extensions ───
 db      = SQLAlchemy()
 migrate = Migrate()
 babel   = Babel()
+login_manager = LoginManager()
 
 def recompute_all_predictions():
-    """
-    Recalcule predicted_label pour TOUTES les images en base,
-    en tolérant l’absence de colonnes lors des migrations.
-    """
     from .models import Image
     from .utils.classification_rules import classify_image
 
     try:
         images = Image.query.all()
     except OperationalError:
-        # La BDD n'est pas encore migrée → on quitte silencieusement
+        # La BDD n'est pas encore migrée, on quitte silencieusement
         return
 
     for img in images:
@@ -43,9 +41,6 @@ def recompute_all_predictions():
     db.session.commit()
 
 def get_locale():
-    """
-    Renvoie la langue active : session['lang'] > Accept-Language > défaut.
-    """
     lang = session.get('lang')
     if lang in current_app.config['LANGUAGES']:
         return lang
@@ -53,22 +48,33 @@ def get_locale():
         current_app.config['LANGUAGES']
     )
 
+@login_manager.user_loader
+def load_user(user_id):
+    from .models import User
+    return db.session.get(User, int(user_id))
+
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
 
-    # ── Internationalisation ────────────────────────────────────────────────
+    # ── Internationalisation ──
     app.config['BABEL_DEFAULT_LOCALE']        = 'fr'
     app.config['BABEL_SUPPORTED_LOCALES']     = ['fr', 'en', 'de']
     app.config['LANGUAGES']                   = app.config['BABEL_SUPPORTED_LOCALES']
     app.config['BABEL_TRANSLATION_DIRECTORIES'] = 'translations'
 
-    # ── Initialisation des extensions ───────────────────────────────────────
+    #Initialisation des extensions
     db.init_app(app)
     migrate.init_app(app, db)
     babel.init_app(app, locale_selector=get_locale)
 
-    # ── Injection dans Jinja ───────────────────────────────────────────────
+    # ── Flask-Login ───────────────────────────
+    login_manager.init_app(app)
+    # page de login par défaut quand @login_required
+    login_manager.login_view = 'main.login'
+    login_manager.login_message_category = 'info'
+
+    # ── Injection dans Jinja ────────────────────
     app.jinja_env.add_extension('jinja2.ext.i18n')
 
     app.jinja_env.globals.update({
@@ -77,11 +83,11 @@ def create_app():
         'get_locale': get_locale  # pour afficher {{ get_locale() }}
     })
 
-    # ── Enregistrement des blueprints ──────────────────────────────────────
+    # ── Enregistrement des blueprints ───────────
     from .routes import main_bp
     app.register_blueprint(main_bp)
 
-    # ── Recompute des prédictions existantes (silencieux) ───────────────────
+    # ── Recompute des prédictions existantes ───────────
     with app.app_context():
         recompute_all_predictions()
 

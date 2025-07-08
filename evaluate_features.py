@@ -40,9 +40,6 @@ def load_data():
     return df
 
 def cohen_d(x1, x2):
-    """
-    Cohen's d pour deux vecteurs numpy
-    """
     n1, n2 = len(x1), len(x2)
     s1, s2 = x1.std(ddof=1), x2.std(ddof=1)
     # pooled std
@@ -50,10 +47,6 @@ def cohen_d(x1, x2):
     return (x1.mean() - x2.mean()) / s if s>0 else 0.0
 
 def analyze(df):
-    """
-    Pour chaque feature, calcule moyennes, std, cohen-d et corrélation.
-    Affiche un résumé trié par |cohen-d| décroissant.
-    """
     features = ['avg_r','avg_g','avg_b','file_size',
                 'contrast','edges_count','dark_ratio',
                 'std_gray','hue_ratio','occupancy_ratio']

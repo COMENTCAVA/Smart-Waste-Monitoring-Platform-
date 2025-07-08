@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-07-03 18:42+0200\n"
+"POT-Creation-Date: 2025-07-07 15:13+0200\n"
 "PO-Revision-Date: 2025-07-03 15:42+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -18,19 +18,47 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.17.0\n"
 
-#: app/templates/base.html:190
+#: app/routes.py:408
+msgid "Inscription réussie. Connectez-vous."
+msgstr ""
+
+#: app/routes.py:421
+msgid "Connexion réussie."
+msgstr ""
+
+#: app/routes.py:424
+msgid "Nom d’utilisateur ou mot de passe incorrect."
+msgstr ""
+
+#: app/routes.py:431
+msgid "Vous avez été déconnecté."
+msgstr ""
+
+#: app/templates/base.html:193
+msgid "Se déconnecter"
+msgstr ""
+
+#: app/templates/base.html:197 app/templates/login.html:2
+msgid "Connexion"
+msgstr ""
+
+#: app/templates/base.html:200 app/templates/register.html:2
+msgid "Inscription"
+msgstr ""
+
+#: app/templates/base.html:210
 msgid "Upload"
 msgstr "Importer"
 
-#: app/templates/base.html:246
+#: app/templates/base.html:266
 msgid "Dashboard"
 msgstr "Menu"
 
-#: app/templates/base.html:252
+#: app/templates/base.html:272
 msgid "Carte"
 msgstr "Carte"
 
-#: app/templates/base.html:258 app/templates/settings.html:6
+#: app/templates/base.html:278 app/templates/settings.html:6
 msgid "Paramètres"
 msgstr "Paramètres"
 
@@ -88,6 +116,18 @@ msgstr ""
 msgid "Contours détectés"
 msgstr ""
 
+#: app/templates/login.html:5 app/templates/register.html:32
+msgid "Se connecter"
+msgstr ""
+
+#: app/templates/login.html:21
+msgid "Pas encore de compte ?"
+msgstr ""
+
+#: app/templates/login.html:22
+msgid "S’inscrire"
+msgstr ""
+
 #: app/templates/map.html:27
 msgid "Votre position"
 msgstr ""
@@ -136,6 +176,14 @@ msgstr ""
 msgid "Position non disponible"
 msgstr ""
 
+#: app/templates/register.html:5
+msgid "Créer un compte"
+msgstr ""
+
+#: app/templates/register.html:31
+msgid "Vous avez déjà un compte ?"
+msgstr ""
+
 #: app/templates/settings.html:23
 msgid "Enregistrer"
 msgstr ""
@@ -152,7 +200,7 @@ msgstr "Importer plusieurs images"
 msgid "État de toutes les images :"
 msgstr ""
 
-#: app/templates/upload.html:33
+#: app/templates/upload.html:33 app/templates/upload.html:62
 msgid "Sélectionnez vos images"
 msgstr ""
 
@@ -166,10 +214,6 @@ msgstr ""
 
 #: app/templates/upload.html:57
 msgid "Annotation dynamique"
-msgstr ""
-
-#: app/templates/upload.html:62
-msgid "Sélectionnez des images pour annotation"
 msgstr ""
 
 #: app/templates/upload.html:72
@@ -447,5 +491,8 @@ msgstr ""
 #~ msgstr ""
 
 #~ msgid "Contours détectés"
+#~ msgstr ""
+
+#~ msgid "Sélectionnez des images pour annotation"
 #~ msgstr ""
 

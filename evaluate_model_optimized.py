@@ -5,16 +5,11 @@ import random
 import numpy as np
 import pandas as pd
 
-# Charge les données en DataFrame (avec y=0/1, avg_r,g,b, file_size, contrast, edges_count, dark_ratio, std_gray)
 from evaluate_features import load_data
 
 def classify_batch(df: pd.DataFrame,
                    B: float, S: float, C: float,
                    E: float, D: float, SG: float) -> float:
-    """
-    Calcule l'accuracy (en %) pour un ensemble de seuils donné,
-    sur le DataFrame préchargé `df`.
-    """
     gray = (df['avg_r'] + df['avg_g'] + df['avg_b']) / 3.0
     cond1 = (df['file_size']   > S) & (gray         < B)
     cond2 = (df['contrast']    > C)
@@ -27,14 +22,14 @@ def classify_batch(df: pd.DataFrame,
     return (pred == df['y']).mean() * 100  # % de bonnes prédictions
 
 def main():
-    print("🔄 Chargement des données…")
+    print("Chargement des données…")
     df = load_data()
-    print(f"📊 {len(df)} images chargées.")
+    print(f"{len(df)} images chargées.")
 
     N_TRIALS = 100_000
     best = {'acc': 0.0}
 
-    print(f"🚀 Lancement de la recherche aléatoire ({N_TRIALS:,} essais)…")
+    print(f"Lancement de la recherche aléatoire ({N_TRIALS:,} essais)…")
     for i in range(1, N_TRIALS+1):
         B  = random.uniform(0,   255)
         S  = random.uniform(50e3, 500e3)
@@ -48,7 +43,6 @@ def main():
         if i % 10_000 == 0:
             print(f"  • Essais {i:,}/{N_TRIALS:,} — meilleur acc: {best['acc']:.2f}%")
 
-    print("\n✅ Recherche terminée.")
     print("Meilleurs seuils trouvés :")
     print(f"  Brightness  = {best['B']:.1f}")
     print(f"  File size   = {best['S']:.0f}")

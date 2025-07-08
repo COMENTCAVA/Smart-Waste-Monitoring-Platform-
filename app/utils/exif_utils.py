@@ -7,14 +7,7 @@ from PIL import Image as PILImage
 from PIL.ExifTags import TAGS, GPSTAGS
 
 def _to_degrees(value):
-    """
-    Transforme une séquence DMS EXIF en degrés décimaux.
-    Supporte à la fois :
-     - un tuple de tuples ((num,den), …)
-     - des objets IFDRational (float(x) fonctionne)
-    """
     def to_float(x):
-        # x peut être (num,den) ou IFDRational
         try:
             return x[0] / x[1]
         except Exception:
@@ -23,10 +16,6 @@ def _to_degrees(value):
     return to_float(d) + to_float(m) / 60.0 + to_float(s) / 3600.0
 
 def get_exif_latlng(path: str):
-    """
-    Lit les tags GPS d’une image et renvoie (lat, lon) en décimal,
-    ou (None, None) si ABSOLUMENT aucune info GPS.
-    """
     try:
         img = PILImage.open(path)
         exif = img._getexif() or {}

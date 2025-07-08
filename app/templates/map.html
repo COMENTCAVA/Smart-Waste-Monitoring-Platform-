@@ -3,17 +3,78 @@
 {% block title %}Carte géolocalisée{% endblock %}
 
 {% block extra_head %}
-  <!-- Leaflet CSS -->
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"/>
-  <!-- ➊ MarkerCluster CSS -->
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
+
+
+<style>
+.leaflet-popup-content-wrapper {
+  border-radius: 1rem;
+  box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+  padding: 0;
+  background: #ffffff;
+  font-family: 'Poppins', sans-serif;
+}
+.leaflet-popup-tip {
+  display: none;
+}
+.leaflet-popup-close-button {
+  font-size: 1.2rem;
+  color: var(--c-secondary);
+  opacity: 0.6;
+  right: 0.75rem;
+  top: 0.5rem;
+}
+.leaflet-popup-close-button:hover {
+  opacity: 1;
+}
+
+.popup-card {
+  width: 240px;
+  overflow: hidden;
+}
+.popup-card img {
+  display: block;
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+}
+.popup-card-body {
+  padding: 0.75rem;
+}
+.popup-card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--c-primary);
+}
+.popup-card-text {
+  font-size: 0.875rem;
+  color: var(--c-text);
+  margin-bottom: 0.5rem;
+}
+.popup-badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.75rem;
+  border-radius: 0.5rem;
+  margin-right: 0.3rem;
+  color: #fff;
+}
+.popup-badge.manual {
+  background: var(--c-secondary);
+}
+.popup-badge.auto {
+  background: var(--c-primary);
+}
+</style>
 {% endblock %}
 
 {% block fullpage %}
@@ -38,102 +99,122 @@
 {% endblock %}
 
 {% block scripts %}
-  <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" defer></script>
-  <!-- ➋ MarkerCluster JS -->
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" defer></script>
 
   <script defer>
   document.addEventListener('DOMContentLoaded', () => {
-    // 1) Initialisation carte
     const map = L.map('map-full').setView([48.8566, 2.3522], 12);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
       maxZoom:18
     }).addTo(map);
 
-    // 2) Définition des icônes (inchangé)
     const marketIcon = L.icon({ iconUrl: '/static/images/market-icon.png', iconSize:[20,20], iconAnchor:[16,32], popupAnchor:[0,-32] });
     const zoneIcon   = L.icon({ iconUrl: '/static/images/zone-icon.png',   iconSize:[20,20], iconAnchor:[16,32], popupAnchor:[0,-32] });
     const chantierIcon = L.icon({ iconUrl: '/static/images/chantier-icon.png', iconSize:[20,20], iconAnchor:[16,32], popupAnchor:[0,-32] });
     const poubellePleineIcon = L.icon({ iconUrl: '/static/images/poubelle-pleine.png', iconSize:[20,20], iconAnchor:[16,32], popupAnchor:[0,-32] });
     const poubelleVideIcon   = L.icon({ iconUrl: '/static/images/poubelle-vide.png',   iconSize:[20,20], iconAnchor:[16,32], popupAnchor:[0,-32] });
 
-    // 3) Création des groupes de clusters
     const imagesCluster   = L.markerClusterGroup();
     const marketsCluster  = L.markerClusterGroup();
     const zonesCluster    = L.markerClusterGroup();
     const chantiersCluster= L.markerClusterGroup();
 
-    // 4) Chargement et ajout des marqueurs dans leurs clusters
-
-    // 4.a) Images → poubelles
     fetch('/api/images?per_page=1000')
       .then(r=>r.json())
       .then(data=>{
         data.images.forEach(img=>{
-          if (!img.latitude || !img.longitude) return;
-          const icon = img.predicted_label==='Pleine'
+          if (!img.latitude || !img.longitude || !img.label) return;
+
+          const icon = img.label === 'Pleine'
                      ? poubellePleineIcon
                      : poubelleVideIcon;
-          const m = L.marker([img.latitude, img.longitude], { icon })
-            .bindPopup(`
-              <img src="${img.url}" class="popup-thumb">
-              <strong>${img.filename}</strong><br>
-              Manuel : ${img.label||'–'}<br>
-              Auto   : ${img.predicted_label||'–'}<br>
-              Taille    : ${img.file_size||'–'} octets<br>
-              Contraste : ${img.contrast||'–'}<br>
-              Contours  : ${img.edges_count||'–'}
-            `);
-          imagesCluster.addLayer(m);
+
+          const manualLabel = img.label;
+          const autoLabel   = img.predicted_label || '–';
+          const popCard = `
+            <div class="popup-card">
+              <img src="${img.url}">
+              <div class="popup-card-body">
+                <div class="popup-card-text">
+                  <span class="popup-badge manual">Manuel : ${manualLabel}</span>
+                  <span class="popup-badge auto">Auto : ${autoLabel}</span>
+                </div>
+                <div class="popup-card-text">
+                  Taille : ${img.file_size || '–'} octets<br>
+                  Contraste : ${img.contrast || '–'}<br>
+                  Contours : ${img.edges_count || '–'}
+                </div>
+              </div>
+            </div>
+          `;
+          L.marker([img.latitude, img.longitude], { icon })
+            .bindPopup(popCard, { className: 'custom-popup' })
+            .addTo(imagesCluster);
         });
         map.addLayer(imagesCluster);
       })
       .catch(console.error);
 
 
-    // 4.c) Zones de rencontre
     fetch('https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/zones-de-rencontre/records?limit=100')
     .then(r=>r.json())
     .then(data=>{
       data.results.forEach(rec=>{
         const { lat, lon } = rec.geo_point_2d;
-        const m = L.marker([lat,lon], { icon: zoneIcon })
-          .bindPopup(`
-            <strong>${rec.nom_zca}</strong><br>
-            1er Arrdt : ${rec.first_arrdt}<br>
-            Date Arr. : ${rec.first_date_arr||'–'}<br>
-            Arrêté    : ${rec.num_arrete||'–'}
-          `);
-        zonesCluster.addLayer(m);
+
+        const popZone = `
+          <div class="popup-card">
+            <div class="popup-card-body">
+              <div class="popup-card-title">${rec.nom_zca}</div>
+              <div class="popup-card-text">
+                1er Arrdt : ${rec.first_arrdt}<br>
+                Date Arr. : ${rec.first_date_arr||'–'}<br>
+                Arrêté    : ${rec.num_arrete||'–'}
+              </div>
+            </div>
+          </div>
+        `;
+        L.marker([lat,lon], { icon: zoneIcon })
+         .bindPopup(popZone, { className: 'custom-popup' })
+         .addTo(zonesCluster);
+
       });
       map.addLayer(zonesCluster);
     })
     .catch(err=>console.error('Zones rencontre :',err));
 
-    // 4.d) Chantiers
     fetch('https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/chantiers-a-paris/records?limit=100')
     .then(r=>r.json())
     .then(data=>{
       data.results.forEach(rec=>{
         const { lat, lon } = rec.geo_point_2d;
-        const m = L.marker([lat,lon], { icon: chantierIcon })
-          .bindPopup(`
-            <strong>${rec.chantier_categorie}</strong><br>
-            Début : ${rec.date_debut}<br>
-            Fin   : ${rec.date_fin}<br>
-            Surface     : ${rec.surface} m²<br>
-            MOA         : ${rec.moa_principal}<br>
-            Synthèse    : ${rec.chantier_synthese}<br>
-            Localisation: ${rec.localisation_detail.join(', ')}
-          `);
-        chantiersCluster.addLayer(m);
+
+        const popChantier = `
+          <div class="popup-card">
+            <div class="popup-card-body">
+              <div class="popup-card-title">${rec.chantier_categorie}</div>
+              <div class="popup-card-text">
+                Début : ${rec.date_debut}<br>
+                Fin   : ${rec.date_fin}<br>
+                Surface : ${rec.surface} m²
+              </div>
+              <div class="popup-card-text">
+                MOA : ${rec.moa_principal||'–'}<br>
+                Synthèse : ${rec.chantier_synthese||'–'}
+              </div>
+            </div>
+          </div>
+        `;
+        L.marker([lat,lon], { icon: chantierIcon })
+         .bindPopup(popChantier, { className: 'custom-popup' })
+         .addTo(chantiersCluster);
+
       });
       map.addLayer(chantiersCluster);
     })
     .catch(err=>console.error('Chantiers :',err));
 
-    // 5) **Contrôle de couches** (cocher/décocher)
     const overlays = {
       "{{ _('Images (poubelles)') }}"  : imagesCluster,
       "{{ _('Marchés (aujourd’hui)') }}": marketsCluster,
@@ -143,23 +224,20 @@
     L.control.layers(null, overlays, { collapsed:false })
      .addTo(map);
 
-    // 6) Demande la position au navigateur (ne change pas le centre)
     map.locate({ setView: false, maxZoom: 14 });
 
-    // 7) Quand on la trouve
     map.on('locationfound', (e) => {
       const lat = e.latlng.lat;
       const lon = e.latlng.lng;
 
       L.circleMarker([lat, lon], {
-        radius:    12,         // rayon en pixels
+        radius:    12,
         fillColor: 'red',
         fillOpacity: 0.8,
         stroke:    false,
         className: 'pulsing-circle'
       }).addTo(map);
 
-      // 7.b) Reverse-geocoding (nom de la ville)
       fetch(
         `https://geocoding-api.open-meteo.com/v1/reverse` +
         `?latitude=${lat}&longitude=${lon}` +
@@ -178,7 +256,6 @@
           '{{ _("Inconnue") }}';
       });
 
-      // 7.c) Météo actuelle
       fetch(
         `https://api.open-meteo.com/v1/forecast` +
         `?latitude=${lat}&longitude=${lon}` +
@@ -193,7 +270,6 @@
       });
     });
 
-    // 8) Erreur de géoloc
     map.on('locationerror', () => {
       document.getElementById('city-name').textContent =
         '{{ _("Position non disponible") }}';

@@ -3,14 +3,14 @@ import numpy as np
 from app import db
 from app.models import Setting
 
-# Seuils par défaut (y compris STD_GRAY_THRESHOLD)
+#Les seuils par défaut
 DEFAULTS = {
     'BRIGHTNESS_THRESHOLD': 127.0,
     'SIZE_THRESHOLD':       100_000.0,
     'CONTRAST_THRESHOLD':   40.0,
     'EDGES_THRESHOLD':      1_000.0,
     'DARK_RATIO_THRESHOLD': 0.30,
-    'STD_GRAY_THRESHOLD':   52.70,    # ⟵ midpoint calculé
+    'STD_GRAY_THRESHOLD':   52.70,
     'HUE_RATIO_THRESHOLD':  0.20,
     'OCCUPANCY_THRESHOLD':  0.10
 }
@@ -20,7 +20,7 @@ def get_threshold(key: str) -> float:
     return setting.value if setting else DEFAULTS[key]
 
 def classify_image(features: dict) -> str:
-    # 1) Lecture des seuils dynamiques
+    #Lecture dynamiques des seuils
     B  = get_threshold('BRIGHTNESS_THRESHOLD')
     S  = get_threshold('SIZE_THRESHOLD')
     C  = get_threshold('CONTRAST_THRESHOLD')
@@ -30,7 +30,7 @@ def classify_image(features: dict) -> str:
     O = get_threshold('OCCUPANCY_THRESHOLD')
     H = get_threshold('HUE_RATIO_THRESHOLD')
 
-    # 2) Extraction des valeurs
+    #Extraction des valeurs
     r, g, b = (
         features.get('avg_color_r', 0.0),
         features.get('avg_color_g', 0.0),
@@ -41,7 +41,7 @@ def classify_image(features: dict) -> str:
     edges    = features.get('edges_count', 0)
     hist     = features.get('hist_gray') or []
 
-    # 3) Calcul dark_ratio et std_gray
+    #On calcul dark_ratio et std_gray
     if hist and sum(hist):
         total      = sum(hist)
         dark_ratio = sum(hist[:50]) / total
@@ -54,7 +54,7 @@ def classify_image(features: dict) -> str:
         dark_ratio = 0.0
         std_gray   = 0.0
 
-    # 4) Vote sur 5 critères
+    #Enfin on vote sur 5 critères
     votes = 0
     if features.get('file_size', 0) > S and gray < B:
         votes += 1
@@ -68,5 +68,5 @@ def classify_image(features: dict) -> str:
         votes += 1
 
 
-    # 5) Seuil de vote (>=3 sur 5)
+    #Le seuil de vote est :
     return 'Pleine' if votes >= 3 else 'Vide'

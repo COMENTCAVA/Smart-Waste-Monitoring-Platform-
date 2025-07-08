@@ -36,7 +36,6 @@
       <div class="form-text">{{ _('Ctrl/Cmd ou ⇧ pour en sélectionner plusieurs') }}</div>
     </div>
 
-    <!-- Barre de progression (cachée par défaut) -->
     <div class="progress mb-3" style="display:none;" id="uploadProgressContainer">
       <div id="uploadProgressBar"
            class="progress-bar"
@@ -52,11 +51,9 @@
   </form>
 </div>
 
-  <!-- ─── Section Annotation Dynamique ───────────────────────────────── -->
   <div class="bg-white p-4 rounded shadow-sm mt-5" style="max-width:600px; margin:auto;">
     <h2 class="mb-4">{{ _('Annotation dynamique') }}</h2>
 
-    <!-- Sélecteur de fichiers multiples -->
     <div class="mb-3">
       <label for="anno-files" class="form-label">
         {{ _('Sélectionnez vos images') }}
@@ -73,22 +70,19 @@
       </div>
     </div>
 
-    <!-- Widget d’annotation (caché tant qu’on n’a pas choisi de fichiers) -->
     <div id="anno-widget" style="display:none;">
-      <!-- Aperçu de l’image -->
+
       <img
         id="anno-preview"
         class="img-fluid mb-3"
         alt="{{ _('Aperçu de l’image') }}"
       >
 
-      <!-- Nom du fichier -->
       <p>
         <strong>{{ _('Fichier') }} :</strong>
         <span id="anno-filename"></span>
       </p>
 
-      <!-- ── Affichage des features ── -->
       <div id="anno-features" class="mb-3" style="display:none;">
         <h6>{{ _('Caractéristiques') }}</h6>
         <ul class="list-unstyled">
@@ -99,7 +93,6 @@
         </ul>
       </div>
 
-      <!-- Choix du label -->
       <div class="mb-3">
         <div class="form-check form-check-inline">
           <input
@@ -127,7 +120,6 @@
         </div>
       </div>
 
-      <!-- Boutons Suivant / Arrêter -->
       <div>
         <button id="anno-next" class="btn btn-primary">
           {{ _('Suivant') }}
@@ -138,12 +130,10 @@
       </div>
     </div>
   </div>
-  <!-- ──────────────────────────────────────────────────────────────────── -->
 {% endblock %}
 
 {% block scripts %}
 <script>
-// Raccourcis clavier V/P + Enter pour soumission rapide
 document.addEventListener('keydown', e => {
   if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
     if (e.key.toLowerCase() === 'v') {
@@ -163,9 +153,8 @@ document.addEventListener('keydown', e => {
   }
 });
 
-// Upload asynchrone + barre de progression
 document.getElementById('uploadForm').addEventListener('submit', function(evt) {
-  evt.preventDefault();  // Empêche le submit classique
+  evt.preventDefault();
 
   const form     = this;
   const url      = form.action;
@@ -174,7 +163,6 @@ document.getElementById('uploadForm').addEventListener('submit', function(evt) {
 
   xhr.open('POST', url);
 
-  // Afficher la barre de progression dès le premier progress event
   const container = document.getElementById('uploadProgressContainer');
   const bar       = document.getElementById('uploadProgressBar');
 
@@ -191,7 +179,6 @@ document.getElementById('uploadForm').addEventListener('submit', function(evt) {
 
   xhr.onload = function() {
     if (xhr.status >= 200 && xhr.status < 300) {
-      // redirige vers le dashboard à la fin
       window.location.href = "{{ url_for('main.dashboard') }}";
     } else {
       alert('Une erreur est survenue pendant l’upload.');
@@ -224,20 +211,16 @@ document.getElementById('uploadForm').addEventListener('submit', function(evt) {
     function loadImage(i) {
       const file = files[i];
       filename.textContent = file.name;
-      // Preview
       const reader = new FileReader();
       reader.onload = evt => preview.src = evt.target.result;
       reader.readAsDataURL(file);
 
-      // Réinitialiser radios
       document.getElementById('anno-vide').checked  = false;
       document.getElementById('anno-pleine').checked = false;
 
-      // Afficher le bloc features
       const featBlock = document.getElementById('anno-features');
       featBlock.style.display = 'block';
 
-      // Préparer FormData pour extraction
       const fd = new FormData();
       fd.append('image', file, file.name);
 
@@ -254,11 +237,9 @@ document.getElementById('uploadForm').addEventListener('submit', function(evt) {
       })
       .catch(err => {
         console.error('Extraction features :', err);
-        // Optionnel : masquer ou indiquer une erreur
       });
     }
 
-    // ← On poste sur la même route /upload
     nextBtn.onclick = async function(evt) {
       evt.preventDefault();
       const choice = document.querySelector('input[name="anno-label"]:checked');
@@ -266,7 +247,6 @@ document.getElementById('uploadForm').addEventListener('submit', function(evt) {
         return alert('{{ _("Veuillez choisir un label avant de passer à l’image suivante.") }}');
       }
 
-      // Prépare FormData exactement comme votre formulaire principal
       const fd = new FormData();
       fd.append('label', choice.value);
       fd.append('images', files[index], files[index].name);
@@ -282,7 +262,6 @@ document.getElementById('uploadForm').addEventListener('submit', function(evt) {
         return alert('{{ _("Erreur lors de l’enregistrement de l’image.") }}');
       }
 
-      // Passe à l’image suivante
       index++;
       if (index < files.length) {
         loadImage(index);

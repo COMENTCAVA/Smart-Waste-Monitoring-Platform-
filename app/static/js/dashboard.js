@@ -1,7 +1,5 @@
 // static/js/dashboard.js
 
-console.log('📊 dashboard.js chargé');
-
 let currentPage = 1,
     hasNext     = true;
 
@@ -11,9 +9,7 @@ async function fetchJSON(url) {
   return res.json();
 }
 
-//Ici les fonctions charts.js
 async function initCharts() {
-  // Camembert manuel
   const ld = await fetchJSON('/api/stats/label_distribution');
   new Chart(
     document.getElementById('labelChart'),
@@ -34,7 +30,6 @@ async function initCharts() {
     }
   );
 
-  // Bar charts
   const cfg = [
     { id:'fileSizeChart', api:'/api/stats/file_size_distribution', label:'Images',   color:'#ffc107' },
     { id:'contrastChart', api:'/api/stats/contrast_distribution',  label:'Contraste',color:'#dc3545' },
@@ -58,9 +53,107 @@ async function initCharts() {
       }
     );
   }
+
+  const ts = await fetchJSON('/api/stats/upload_timeseries');
+  new Chart(
+    document.getElementById('uploadTimeChart'),
+    {
+      type: 'line',
+      data: {
+        labels: ts.labels,
+        datasets: [{
+          label: 'Uploads/jour',
+          data: ts.counts,
+          fill: false,
+          borderColor: '#0d6efd',
+          backgroundColor: '#0d6efd',
+          tension: 0.3,
+          pointRadius: 4,
+          pointHoverRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            title: { display: true, text: 'Date' }
+          },
+          y: {
+            beginAtZero: true,
+            title: { display: true, text: 'Nombre d’images' }
+          }
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => `${ctx.parsed.y} uploads le ${ctx.label}`
+            }
+          }
+        }
+      }
+    }
+  );
+
+  const bubbleData = await fetchJSON('/api/stats/contrast_edges_bubble');
+
+  const groups = { Vide: [], Pleine: [] };
+  bubbleData.forEach(pt => {
+    groups[pt.label]?.push(pt);
+  });
+
+  new Chart(
+    document.getElementById('bubbleChart'),
+    {
+      type: 'bubble',
+      data: {
+        datasets: [
+          {
+            label: 'Vide',
+            data: groups.Vide,
+            backgroundColor: 'rgba(13,110,253,0.5)',
+            borderColor:  'rgba(13,110,253,1)',
+          },
+          {
+            label: 'Pleine',
+            data: groups.Pleine,
+            backgroundColor: 'rgba(25,135,84,0.5)',
+            borderColor:  'rgba(25,135,84,1)',
+          }
+        ]
+      },
+      options: {
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            title: { display: true, text: 'Contraste' },
+            beginAtZero: true
+          },
+          y: {
+            title: { display: true, text: 'Contours détectés' },
+            beginAtZero: true
+          }
+        },
+        plugins: {
+          legend: { position: 'bottom' },
+          tooltip: {
+            callbacks: {
+              label(ctx) {
+                const v = ctx.raw;
+                return `${ctx.dataset.label} — C: ${v.x}, E: ${v.y}, Occ: ${(
+                  v.r / 30
+                ).toFixed(2)}`;
+              }
+            }
+          }
+        }
+      }
+    }
+  );
 }
 
-// 3) Chargement paginé des images + suppression AJAX
+
 async function loadImages(reset = false) {
   if (reset) {
     currentPage = 1;
@@ -69,7 +162,6 @@ async function loadImages(reset = false) {
   }
   if (!hasNext) return;
 
-  // URL avec filtres
   const params = new URLSearchParams({
     page:         currentPage,
     per_page:     21,
@@ -85,14 +177,12 @@ async function loadImages(reset = false) {
     const col = document.createElement('div');
     col.className = 'col';
 
-    // États « vide » / « pleine »
+    // États vide/pleine
     const mState = img.label === 'Pleine'           ? 'pleine' : 'vide';
     const aState = img.predicted_label === 'Pleine' ? 'pleine' : 'vide';
 
-    // HTML de la card
     col.innerHTML = `
       <div class="image-card position-relative">
-        <!-- 1) Bouton supprimer en haut à droite -->
         <button
           class="image-card__delete"
           data-id="${img.id}"
@@ -101,19 +191,17 @@ async function loadImages(reset = false) {
           <i class="bi bi-trash-fill"></i>
         </button>
 
-        <!-- 2) Image lazy + tooltip -->
         <img src="${img.url}" loading="lazy"
              class="w-100"
              data-bs-toggle="tooltip"
              title="
-Taille      : ${img.file_size} octets
-Contraste   : ${img.contrast}
-Contours    : ${img.edges_count}
-Date upload : ${new Date(img.uploaded_at).toLocaleString()}
-             "
+                Taille      : ${img.file_size} octets
+                Contraste   : ${img.contrast}
+                Contours    : ${img.edges_count}
+                Date upload : ${new Date(img.uploaded_at).toLocaleString()}
+                    "
              alt="Image">
 
-        <!-- 3) Badges overlay bas -->
         <div class="image-card__info">
           <span class="image-card__badge-inline image-card__badge-inline--${mState}"
                 title="Étiquette manuelle">
@@ -132,34 +220,27 @@ Date upload : ${new Date(img.uploaded_at).toLocaleString()}
     cont.appendChild(col);
   });
 
-  // (Re)initialiser tooltips
   document.querySelectorAll('[data-bs-toggle="tooltip"]')
           .forEach(el => new bootstrap.Tooltip(el));
 
-  // Pagination
   hasNext = resp.has_next;
   currentPage++;
   document.getElementById('loadMore').style.display = hasNext ? 'block' : 'none';
 }
 
-// 4) Initialisation et événements
 window.addEventListener('DOMContentLoaded', () => {
-  // Charts + 1ère page d’images
   initCharts().catch(e => console.error('initCharts :', e));
   loadImages(true).catch(e => console.error('loadImages :', e));
 
-  // Filtrer
   document.getElementById('applyFilters')
     .addEventListener('click', e => {
       e.preventDefault();
       loadImages(true);
     });
 
-  // Charger plus
   document.getElementById('loadMore')
     .addEventListener('click', () => loadImages(false));
 
-  // Suppression AJAX déléguée
   document.getElementById('imagesContainer')
     .addEventListener('click', e => {
       const btn = e.target.closest('.image-card__delete');
@@ -170,7 +251,6 @@ window.addEventListener('DOMContentLoaded', () => {
       fetch(`/delete/${id}`, { method:'POST' })
         .then(res => {
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          // on retire la colonne sans rechargement
           btn.closest('.col').remove();
         })
         .catch(err => {

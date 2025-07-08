@@ -3,12 +3,290 @@
 {% block title %}Dashboard WDP{% endblock %}
 
 {% block extra_head %}
-  <!-- Chart.js only on this page -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@3" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-matrix@1" defer></script>
+  <script src="{{ url_for('static', filename='js/dashboard.js') }}" defer></script>
+
+
+  <style>
+    :root {
+      --radius:           0.75rem;
+      --shadow:           0 4px 16px rgba(0,0,0,0.1);
+      --shadow-hover:     0 8px 24px rgba(0,0,0,0.15);
+      --bg:               #F0F2F5;
+      --fg:               #333333;
+      --fg-light:         #666666;
+      --primary:          #4F46E5;
+      --primary-light:    #8177D6;
+      --accent:           #10B981;
+      --border:           #E5E7EB;
+    }
+
+    body.dashboard {
+      background-color: var(--bg);
+      color: var(--fg);
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    #splash-screen {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+    .splash-logo {
+      width: 200px;
+      opacity: 0;
+      animation: splash-pop 0.6s ease-out forwards;
+    }
+    @keyframes splash-pop {
+      0%   { transform: scale(0.5); opacity: 0; }
+      60%  { transform: scale(1.2); opacity: 1; }
+      100% { transform: scale(1); }
+    }
+
+    .stat-card {
+      background: #FFFFFF;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1rem;
+      text-align: center;
+      transition: transform .3s ease, box-shadow .3s ease;
+    }
+    .stat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-hover);
+    }
+    .stat-label {
+      font-size: .9rem;
+      color: var(--fg-light);
+    }
+    .stat-value {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-top: .5rem;
+      color: var(--fg);
+    }
+
+    .filters-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .filters-row .form-control,
+    .filters-row .form-select {
+      height: 2.5rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      transition: border-color .3s, box-shadow .3s;
+    }
+    .filters-row .form-control:focus,
+    .filters-row .form-select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(79,70,229,0.2);
+    }
+    #applyFilters {
+      height: 2.5rem;
+      border-radius: var(--radius);
+      background: var(--primary);
+      border: none;
+      color: #fff;
+      font-weight: 600;
+      transition: background .3s, transform .2s;
+    }
+    #applyFilters:hover {
+      background: var(--primary-light);
+      transform: translateY(-2px);
+    }
+
+    .chart-card {
+      background: #FFFFFF;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: none;
+      padding: 1rem;
+      transition: transform .3s ease, box-shadow .3s ease;
+    }
+    .chart-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-hover);
+    }
+    .chart-card h5 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--fg-light);
+      margin-bottom: .75rem;
+    }
+    .chart-container {
+      position: relative;
+      height: 250px;
+    }
+
+    #loadMore {
+      display: block;
+      margin: 2rem auto;
+      padding: .75rem 1.5rem;
+      border-radius: var(--radius);
+      border: 2px dashed var(--primary);
+      background: transparent;
+      color: var(--primary);
+      font-weight: 600;
+      transition: background .3s, color .3s;
+    }
+    #loadMore:hover {
+      background: var(--primary);
+      color: #fff;
+    }
+
+  </style>
+
+  <style>
+    @keyframes pulse {
+      0%   { transform: scale(1); }
+      50%  { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+
+    .btn-pulse {
+      animation: pulse 0.4s ease-in-out;
+    }
+
+    #imagesContainer .col {
+      padding: 0.5rem;
+    }
+    .image-card {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-radius: 10px;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.12);
+      transition: transform 0.2s ease-in-out,box-shadow 0.5s ease-in-out;
+    }
+    .image-card:hover {
+      transform: translateY(-6px) scale(1.01);
+      box-shadow: 0 20px 48px rgba(0,0,0,0.22);
+    }
+
+    .image-card img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 7;
+      object-fit: cover;
+      transition: transform .6s ease;
+    }
+
+    .image-wrapper {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      overflow: hidden;
+    }
+    .image-wrapper img {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      transition: transform .6s ease;
+    }
+    .image-card:hover .image-wrapper img {
+      transform: scale(1.1);
+    }
+
+    .image-card__info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: .75rem 1rem;
+      background: rgba(255,255,255,0.5);
+      backdrop-filter: blur(8px);
+      color: var(--c-text);
+      font-size: 0.85rem;
+      line-height: 1.2;
+    }
+
+    .image-card__badge-inline {
+      text-transform: uppercase;
+      font-weight: 600;
+      font-size: 0.75rem;
+      padding: 0.3rem 0.8rem;
+      border-radius: 0.75rem;
+      color: #fff;
+      transition: opacity .3s ease;
+    }
+    .image-card__badge-inline--vide {
+      background: var(--c-primary);
+    }
+    .image-card__badge-inline--pleine {
+      background: var(--c-secondary);
+    }
+    .image-card__badge-inline:hover {
+      opacity: 0.85;
+    }
+
+    .image-card__delete {
+      position: absolute;
+      top: .6rem; right: .6rem;
+      width: 2.2rem; height: 2.2rem;
+      border: none;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.9);
+      color: var(--c-primary);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      opacity: 0;
+      transition: opacity .2s ease, transform .2s ease;
+    }
+    .image-card:hover .image-card__delete {
+      opacity: 1;
+      transform: translateY(-2px) scale(1.05);
+    }
+    .image-card__delete:hover {
+      background: var(--c-primary);
+      color: #fff;
+    }
+
+    .image-card::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 4px;
+    }
+
+
+    #imgLightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 3000;
+      cursor: zoom-out;
+    }
+    #imgLightbox img {
+      max-width: 90%;
+      max-height: 90%;
+      box-shadow: 0 0 40px rgba(0,0,0,0.5);
+      border-radius: 0.5rem;
+    }
+    #imgLightbox .lightbox-close {
+      position: absolute;
+      top: 1rem; right: 1rem;
+      font-size: 2rem;
+      color: #fff;
+      cursor: pointer;
+      user-select: none;
+    }
+
+  </style>
 {% endblock %}
 
 {% block content %}
-  <!-- Splash screen -->
   <div id="splash-screen">
     <img
       src="{{ url_for('static', filename='images/logo.png') }}"
@@ -17,7 +295,6 @@
     >
   </div>
 
-  <!-- Résumé global / Accuracy -->
   {% set stats = [
       (_('Total'),           total),
       (_('Vide (manuel)'),   manual_empty_pct|round(1) ~ '%'),
@@ -35,7 +312,6 @@
   {% endfor %}
 </div>
 
-  <!-- Filtres -->
   <div class="row g-3 mb-4">
     <div class="col-md-2">
       <input id="filterDateFrom" type="date" class="form-control">
@@ -62,7 +338,6 @@
     </div>
   </div>
 
-  <!-- Graphiques -->
   <div class="row gy-4">
     <div class="col-md-6 text-center">
       <h5>{{ _('Camembert de répartition') }}</h5>
@@ -94,38 +369,91 @@
         </div>
       </div>
     </div>
+
+    <div class="col-md-6">
+      <div class="card chart-card p-3 mb-4">
+        <h5>{{ _('Uploads / jour') }}</h5>
+        <div class="chart-container">
+          <canvas id="uploadTimeChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card chart-card p-3 mb-4">
+        <h5>{{ _('Bubble Chart : Contraste vs Contours') }}</h5>
+        <div class="chart-container">
+          <canvas id="bubbleChart"></canvas>
+        </div>
+      </div>
+    </div>
+
   </div>
 
-  <!-- Grille d’images -->
   <div id="imagesContainer" class="row row-cols-1 row-cols-md-3 g-4 mt-4"></div>
 
-  <!-- Charger plus -->
   <button id="loadMore" class="btn btn-outline-secondary w-100 my-4">
     Charger plus
   </button>
+
+  <div id="imgLightbox">
+    <span class="lightbox-close">&times;</span>
+    <img src="" alt="Preview">
+  </div>
 {% endblock %}
 
 {% block scripts %}
   <script src="{{ url_for('static', filename='js/dashboard.js') }}" defer></script>
 
-  <script src="{{ url_for('static', filename='js/dashboard.js') }}" defer></script>
-
-  <!-- Splash logic -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const splash = document.getElementById('splash-screen');
       const logo   = splash.querySelector('.splash-logo');
 
-      // 1) Dès que le "pop" est terminé, on déclenche le fondu
       logo.addEventListener('animationend', () => {
         splash.classList.add('fade-out');
       });
 
-      // 2) Au bout du fondu, on retire le splash du DOM
       splash.addEventListener('animationend', () => {
         splash.remove();
       });
     });
   </script>
 
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const btn = document.getElementById('applyFilters');
+      const imagesSection = document.getElementById('imagesContainer');
+
+      btn.addEventListener('click', (e) => {
+
+        btn.classList.add('btn-pulse');
+        setTimeout(() => {
+          imagesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          btn.classList.remove('btn-pulse');
+        }, 400);
+      });
+    });
+  </script>
+
+  <script>
+    const lightbox = document.getElementById('imgLightbox');
+    const lbImg    = lightbox.querySelector('img');
+    const lbClose  = lightbox.querySelector('.lightbox-close');
+
+    document.getElementById('imagesContainer')
+      .addEventListener('click', e => {
+        const img = e.target.closest('.image-card img');
+        if (!img) return;
+        lbImg.src = img.src;
+        lightbox.style.display = 'flex';
+      });
+
+    lightbox.addEventListener('click', e => {
+      if (e.target === lightbox || e.target === lbClose) {
+        lightbox.style.display = 'none';
+        lbImg.src = '';
+      }
+    });
+  </script>
 {% endblock %}

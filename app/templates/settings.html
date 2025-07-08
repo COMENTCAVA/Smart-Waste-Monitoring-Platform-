@@ -11,7 +11,6 @@
     {% endfor %}
   {% endwith %}
 
-  <!-- Formulaire de seuils -->
   <form method="post" id="settingsForm">
     {% for key, val in settings.items() %}
       <div class="mb-3">
@@ -25,12 +24,10 @@
 
   <hr>
 
-  <!-- Bouton d'optimisation -->
   <button id="optimizeBtn" class="btn btn-outline-secondary w-100 mb-3">
     {{ _('🔍 Trouver les meilleurs seuils') }}
   </button>
 
-  <!-- Barre de progression -->
   <div id="optimizeProgress" class="progress" style="height:1.5rem; display:none;">
     <div class="progress-bar progress-bar-striped progress-bar-animated"
          role="progressbar" style="width:0%">0%</div>
@@ -49,7 +46,7 @@
       btn.textContent = 'Optimisation en cours…';
       prog.style.display = 'block';
 
-      const DURATION = 30000;  // Durée estimée (à ajuster)
+      const DURATION = 30000;
       const start = Date.now();
       function tick() {
         let pct = Math.min(100, (Date.now() - start)/DURATION*100);
@@ -59,10 +56,8 @@
       }
       tick();
 
-      // Appel AJAX à Flask
       await fetch('{{ url_for("main.optimize_settings") }}', { method:'POST' });
 
-      // Termine et recharge
       bar.style.width = '100%';
       bar.textContent = '100%';
       setTimeout(() => location.reload(), 500);

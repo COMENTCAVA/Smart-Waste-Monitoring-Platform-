@@ -1,37 +1,30 @@
-/* Police Inter */
+
 /*
 app/static/css/styles.css
 */
 
-/* ──────────────────────────────────────────────────────────────────────────── */
-/* 1. Variables par défaut (mode Clair) */
 :root {
-  /* Couleurs globales */
-  --bg-page:         #f8f9fa;   /* fond de page */
-  --fg-text:         #212529;   /* texte principal */
-  --link-color:      #0d6efd;   /* liens, boutons primaires */
 
-  /* Navbar */
+  --bg-page:         #f8f9fa;
+  --fg-text:         #212529;
+  --link-color:      #0d6efd;
+
   --bg-navbar:       #ffffff;
   --fg-navbar-text:  #212529;
 
-  /* Cartes */
   --bg-card:         #ffffff;
   --shadow-color:    rgba(0, 0, 0, 0.1);
 
-  /* Alerts */
   --bg-alert-success:  #d1e7dd;
   --bg-alert-danger:   #f8d7da;
   --bg-alert-info:     #cff4fc;
 }
 
 :root {
-  /* Typographie */
   --font-base: 'Inter', sans-serif;
-  --fs-base: 1rem;             /* 16px */
+  --fs-base: 1rem;
   --lh-base: 1.6;
 
-  /* Couleurs */
   --c-bg:    #F9FAFB;
   --c-card:  #FFFFFF;
   --c-text:  #111827;
@@ -41,41 +34,33 @@ app/static/css/styles.css
   --c-border:   #E5E7EB;
   --c-shadow:   rgba(0,0,0,0.05);
 
-    /* Couleurs universelles des badges */
-  --badge-vide-bg:    rgba(13, 110, 253, 0.85);  /* bleu vif */
-  --badge-pleine-bg:  rgba(25, 135,  84, 0.85);  /* vert vif */
+  --badge-vide-bg:    rgba(13, 110, 253, 0.85);
+  --badge-pleine-bg:  rgba(25, 135,  84, 0.85);
   --badge-text-color: #ffffff;
 }
 
-/* ──────────────────────────────────────────────────────────────────────────── */
-/* 2. Variables pour le mode Sombre */
+/*Variables pour le mode Sombre*/
 [data-theme="dark"] {
-  /* Couleurs globales */
   --bg-page:         #121212;
   --fg-text:         #e0e0e0;
   --link-color:      #66bfff;
 
-  /* Navbar */
   --bg-navbar:       #1f1f1f;
   --fg-navbar-text:  #e0e0e0;
 
-  /* Cartes */
   --bg-card:         #1e1e1e;
   --shadow-color:    rgba(0, 0, 0, 0.5);
 
-  /* Alerts */
   --bg-alert-success:  #263c2b;
   --bg-alert-danger:   #3d1f23;
   --bg-alert-info:     #1b373f;
 
-  --badge-text-color: #212529; /* texte sombre sur badges clairs */
+  --badge-text-color: #212529;
 }
-/* ──────────────────────────────────────────────────────────────────────────── */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
 .font-inter { font-family: 'Inter', sans-serif; }
 
-/* Dashboard.js charts */
 #labelChartContainer {
   width: 300px;
   height: 300px;
@@ -86,7 +71,6 @@ app/static/css/styles.css
   height: 250px;
 }
 
-/* Quelques ajustements généraux */
 .btn-lg { padding: 1rem 2rem; }
 img.border { border: 1px solid #dee2e6; }
 
@@ -116,17 +100,14 @@ a {
   transition: transform .2s ease-in-out, box-shadow .2s ease-in-out;
 }
 
-/* Alerts */
 .alert-success { background-color: var(--bg-alert-success); }
 .alert-danger  { background-color: var(--bg-alert-danger); }
 .alert-info    { background-color: var(--bg-alert-info); }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
-    /* Si l’utilisateur n’a pas explicitement choisi, on bascule en sombre */
     --bg-page:         #121212;
     --fg-text:         #e0e0e0;
-    /* …etc (on peut réimporter les mêmes valeurs que dans [data-theme="dark"]) */
   }
 }
 
@@ -166,91 +147,6 @@ html { font-family: var(--font-base); font-size: var(--fs-base); line-height: va
   height: 250px;
 }
 
-/* ─── Image Card Moderne ─── */
-.image-card {
-  position: relative;
-  background: var(--c-card);
-  border-radius: 1rem;
-  overflow: hidden;
-  box-shadow: 0 .5rem 1rem var(--c-shadow);
-  transition: transform .3s ease, box-shadow .3s ease;
-}
-.image-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 1rem 2rem rgba(0,0,0,0.15);
-}
-
-/* Overlay au bas de l’image pour les badges */
-.image-card__info {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  padding: 0.5rem;
-  display: flex;
-  justify-content: space-between;
-  backdrop-filter: blur(4px);
-  background: linear-gradient(to top, rgba(0,0,0,0.4), transparent);
-  box-sizing: border-box;
-}
-
-/* Badge générique */
-.image-card__badge-inline {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.25rem 0.75rem;
-  border-radius: 1rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--c-card);
-}
-
-/* ----------------------------------- */
-/*  Badges « vide » vs « pleine »        */
-/* ----------------------------------- */
-.image-card__badge-inline--vide {
-  background-color: var(--badge-vide-bg);
-  color:            var(--badge-text-color);
-}
-
-.image-card__badge-inline--pleine {
-  background-color: var(--badge-pleine-bg);
-  color:            var(--badge-text-color);
-}
-
-/* Bouton de suppression flottant */
-.image-card__delete {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  width: 2rem;
-  height: 2rem;
-  border: none;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.85);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1rem;
-  color: #d9534f;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity .2s ease;
-  backdrop-filter: blur(4px);
-}
-.image-card:hover .image-card__delete {
-  opacity: 1;
-}
-
-/* Image (pas de bordure blanche en-dessous) */
-.image-card img {
-  display: block;
-  width: 100%;
-  height: 180px;
-  object-fit: cover;
-}
-
 .btn-primary {
   background-color: var(--c-primary);
   border: none;
@@ -267,16 +163,11 @@ html { font-family: var(--font-base); font-size: var(--fs-base); line-height: va
   border: 1px solid var(--c-border);
 }
 
-
-/* ─── Style du popup Leaflet ─── */
-
-/* 1) Conteneur du popup */
 .leaflet-popup-content-wrapper {
   border-radius: 0.75rem;
   box-shadow: 0 .5rem 1rem rgba(0,0,0,0.1);
 }
 
-/* 2) Miniature */
 .leaflet-popup-content img.popup-thumb {
   display: block;
   margin: 0 auto 0.5rem;
@@ -287,7 +178,6 @@ html { font-family: var(--font-base); font-size: var(--fs-base); line-height: va
   box-shadow: 0 .25rem .5rem rgba(0,0,0,0.1);
 }
 
-/* 3) Texte du popup */
 .leaflet-popup-content .popup-info {
   font-size: 0.875rem;
   line-height: 1.4;
@@ -298,18 +188,15 @@ html { font-family: var(--font-base); font-size: var(--fs-base); line-height: va
   margin-bottom: 0.25rem;
 }
 
-/* —– Style complet : case sur fond blanc + bord arrondi + coche custom —– */
 .leaflet-control-layers-overlays label {
   display: flex;
   align-items: center;
 }
 .leaflet-control-layers-overlays input[type="checkbox"] {
-  /* on supprime l’apparence native */
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
 
-  /* taille, marge, bordure, fond */
   width: 18px;
   height: 18px;
   margin-right: 8px;
@@ -320,7 +207,6 @@ html { font-family: var(--font-base); font-size: var(--fs-base); line-height: va
   position: relative;
 }
 
-/* coche (✓) en pseudo-élément */
 .leaflet-control-layers-overlays input[type="checkbox"]:checked::after {
   content: '';
   position: absolute;
@@ -333,11 +219,9 @@ html { font-family: var(--font-base); font-size: var(--fs-base); line-height: va
   transform: rotate(45deg);
 }
 
-
-/* ─── Splash Screen ──────────────────────────────────────────────────────── */
 #splash-screen {
   position: fixed;
-  inset: 0;                          /* top:0; right:0; bottom:0; left:0; */
+  inset: 0;
   background: var(--bg-page);
   display: flex;
   justify-content: center;
@@ -357,7 +241,6 @@ html { font-family: var(--font-base); font-size: var(--fs-base); line-height: va
   100% { transform: scale(1); }
 }
 
-/* fondu de sortie du splash */
 @keyframes splash-fade {
   from { opacity: 1; }
   to   { opacity: 0; visibility: hidden; }
@@ -378,3 +261,7 @@ html { font-family: var(--font-base); font-size: var(--fs-base); line-height: va
 .navbar .nav-link.dropdown-toggle::after {
   display: none !important;
 }
+
+
+
+
