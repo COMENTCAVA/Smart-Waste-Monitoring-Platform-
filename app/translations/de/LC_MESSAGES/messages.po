@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-07-07 15:13+0200\n"
+"POT-Creation-Date: 2025-07-09 00:39+0200\n"
 "PO-Revision-Date: 2025-07-03 19:06+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: de\n"
@@ -18,105 +18,113 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.17.0\n"
 
-#: app/routes.py:408
+#: app/routes.py:469
 msgid "Inscription réussie. Connectez-vous."
 msgstr "Registrierung erfolgreich. Anmelden."
 
-#: app/routes.py:421
+#: app/routes.py:482
 msgid "Connexion réussie."
 msgstr "Verbindung erfolgreich."
 
-#: app/routes.py:424
+#: app/routes.py:485
 msgid "Nom d’utilisateur ou mot de passe incorrect."
 msgstr "Falscher Benutzername oder falsches Passwort."
 
-#: app/routes.py:431
+#: app/routes.py:492
 msgid "Vous avez été déconnecté."
 msgstr "Sie wurden abgemeldet."
 
-#: app/templates/base.html:193
+#: app/templates/base.html:178
 msgid "Se déconnecter"
 msgstr "Abmelden"
 
-#: app/templates/base.html:197 app/templates/login.html:2
+#: app/templates/base.html:182 app/templates/login.html:2
 #, fuzzy
 msgid "Connexion"
 msgstr "Zustand"
 
-#: app/templates/base.html:200 app/templates/register.html:2
-#, fuzzy
-msgid "Inscription"
-msgstr "Zustand"
-
-#: app/templates/base.html:210
+#: app/templates/base.html:191
 msgid "Upload"
 msgstr "Hochladen"
 
-#: app/templates/base.html:266
+#: app/templates/base.html:244
 msgid "Dashboard"
 msgstr "Armaturenbrett"
 
-#: app/templates/base.html:272
+#: app/templates/base.html:250
 msgid "Carte"
 msgstr "Karte"
 
-#: app/templates/base.html:278 app/templates/settings.html:6
+#: app/templates/base.html:256 app/templates/settings.html:6
 msgid "Paramètres"
 msgstr "Einstellungen"
 
-#: app/templates/dashboard.html:22
+#: app/templates/dashboard.html:326
 msgid "Total"
 msgstr "Gesamt"
 
-#: app/templates/dashboard.html:23
+#: app/templates/dashboard.html:327
 msgid "Vide (manuel)"
 msgstr "Leeren (manuell)"
 
-#: app/templates/dashboard.html:24
+#: app/templates/dashboard.html:328
 msgid "Pleine (manuel)"
 msgstr "Vollständig (manuell)"
 
-#: app/templates/dashboard.html:25
+#: app/templates/dashboard.html:329
 msgid "Accuracy"
 msgstr ""
 
-#: app/templates/dashboard.html:48
+#: app/templates/dashboard.html:351
 msgid "Manuel : Tous"
 msgstr "Handbuch: Alle"
 
-#: app/templates/dashboard.html:49 app/templates/dashboard.html:56
-#: app/templates/upload.html:23 app/templates/upload.html:113
+#: app/templates/dashboard.html:352 app/templates/dashboard.html:359
+#: app/templates/upload.html:23 app/templates/upload.html:106
 msgid "Vide"
 msgstr "Leer"
 
-#: app/templates/dashboard.html:50 app/templates/dashboard.html:57
-#: app/templates/upload.html:28 app/templates/upload.html:125
+#: app/templates/dashboard.html:353 app/templates/dashboard.html:360
+#: app/templates/upload.html:28 app/templates/upload.html:118
 msgid "Pleine"
 msgstr "Voll"
 
-#: app/templates/dashboard.html:55
+#: app/templates/dashboard.html:358
 msgid "Auto : Tous"
 msgstr "Auto : Alle"
 
-#: app/templates/dashboard.html:61
+#: app/templates/dashboard.html:364
 msgid "Filtrer"
 msgstr "Filter"
 
-#: app/templates/dashboard.html:68
+#: app/templates/dashboard.html:370
 msgid "Camembert de répartition"
 msgstr "Vertrieb Camembert"
 
-#: app/templates/dashboard.html:75
+#: app/templates/dashboard.html:377
 msgid "Taille de fichier"
 msgstr "Dateigröße"
 
-#: app/templates/dashboard.html:83 app/templates/upload.html:96
+#: app/templates/dashboard.html:385 app/templates/upload.html:90
 msgid "Contraste"
 msgstr "Kontrast"
 
-#: app/templates/dashboard.html:91
+#: app/templates/dashboard.html:393
 msgid "Contours détectés"
 msgstr "Kanten erkannt"
+
+#: app/templates/dashboard.html:402
+#, fuzzy
+msgid "Uploads / jour"
+msgstr "Hochladen"
+
+#: app/templates/dashboard.html:411
+msgid "Bubble Chart : Contraste vs Contours"
+msgstr "Blasendiagramm: Kontrast vs. Konturen"
+
+#: app/templates/dashboard.html:423
+msgid "Charger plus"
+msgstr "Mehr laden"
 
 #: app/templates/login.html:5 app/templates/register.html:32
 msgid "Se connecter"
@@ -130,67 +138,72 @@ msgstr "Noch kein Konto?"
 msgid "S’inscrire"
 msgstr "Registrieren"
 
-#: app/templates/map.html:27
+#: app/templates/map.html:224
 msgid "Votre position"
 msgstr "Ihr Standort"
 
-#: app/templates/map.html:28
+#: app/templates/map.html:225
 msgid "Chargement…"
 msgstr "Laden…"
 
-#: app/templates/map.html:30
+#: app/templates/map.html:227
 msgid "Météo actuelle"
 msgstr "Aktuelles Wetter"
 
-#: app/templates/map.html:32
+#: app/templates/map.html:229
 msgid "Température"
 msgstr "Temperatur"
 
-#: app/templates/map.html:33
+#: app/templates/map.html:230
 msgid "Vent"
 msgstr "Wind"
 
-#: app/templates/map.html:34
-msgid "Condition"
-msgstr "Zustand"
+#: app/templates/map.html:231
+msgid "Humidité"
+msgstr "Luftfeuchtigkeit"
 
-#: app/templates/map.html:138
+#: app/templates/map.html:232
+msgid "Précipitations"
+msgstr "Fällung"
+
+#: app/templates/map.html:363
 msgid "Images (poubelles)"
 msgstr "Bilder (Papierkorb)"
 
-#: app/templates/map.html:139
-msgid "Marchés (aujourd’hui)"
-msgstr "Märkte (heute)"
-
-#: app/templates/map.html:140
+#: app/templates/map.html:364
 msgid "Zones rencontre"
 msgstr "Besprechungsbereiche"
 
-#: app/templates/map.html:141
+#: app/templates/map.html:365
 msgid "Chantiers"
 msgstr "Baustellen"
 
-#: app/templates/map.html:178
+#: app/templates/map.html:399
 msgid "Inconnue"
 msgstr "Unbekannt"
 
-#: app/templates/map.html:199
+#: app/templates/map.html:429
 msgid "Position non disponible"
 msgstr "Position nicht verfügbar"
 
+#: app/templates/register.html:2
+#, fuzzy
+msgid "Inscription"
+msgstr "Zustand"
+
 #: app/templates/register.html:5
 msgid "Créer un compte"
-msgstr ""
+msgstr "Ein Konto erstellen"
 
 #: app/templates/register.html:31
 msgid "Vous avez déjà un compte ?"
-msgstr ""
+msgstr "Hast du schon ein Konto?"
 
-#: app/templates/settings.html:23
+#: app/templates/settings.html:22
 msgid "Enregistrer"
 msgstr "Speichern"
 
-#: app/templates/settings.html:30
+#: app/templates/settings.html:28
 msgid "🔍 Trouver les meilleurs seuils"
 msgstr "🔍 Finden Sie die besten Schwellenwerte"
 
@@ -202,7 +215,7 @@ msgstr "Laden Sie mehrere Bilder hoch"
 msgid "État de toutes les images :"
 msgstr "Status aller Bilder:"
 
-#: app/templates/upload.html:33 app/templates/upload.html:62
+#: app/templates/upload.html:33 app/templates/upload.html:59
 msgid "Sélectionnez vos images"
 msgstr "Wählen Sie Ihre Bilder aus"
 
@@ -210,61 +223,61 @@ msgstr "Wählen Sie Ihre Bilder aus"
 msgid "Ctrl/Cmd ou ⇧ pour en sélectionner plusieurs"
 msgstr "Strg/Cmd oder ⇧ zur Auswahl mehrerer"
 
-#: app/templates/upload.html:51
+#: app/templates/upload.html:50
 msgid "Envoyer tout"
 msgstr "Alles senden"
 
-#: app/templates/upload.html:57
+#: app/templates/upload.html:55
 msgid "Annotation dynamique"
 msgstr "Dynamische Anmerkung"
 
-#: app/templates/upload.html:72
+#: app/templates/upload.html:69
 msgid "Elles seront présentées UNE à UNE à annoter."
 msgstr "Sie werden EINZELN zur Kommentierung präsentiert."
 
-#: app/templates/upload.html:82
+#: app/templates/upload.html:78
 msgid "Aperçu de l’image"
 msgstr "Bildvorschau"
 
-#: app/templates/upload.html:87
+#: app/templates/upload.html:82
 msgid "Fichier"
 msgstr "Datei"
 
-#: app/templates/upload.html:93
+#: app/templates/upload.html:87
 msgid "Caractéristiques"
 msgstr "Merkmale"
 
-#: app/templates/upload.html:95
+#: app/templates/upload.html:89
 msgid "Taille"
 msgstr "Größe"
 
-#: app/templates/upload.html:97
+#: app/templates/upload.html:91
 msgid "Contours"
 msgstr "Umrisse"
 
-#: app/templates/upload.html:98
+#: app/templates/upload.html:92
 msgid "Ratio occupation"
 msgstr "Belegungsquote"
 
-#: app/templates/upload.html:133
+#: app/templates/upload.html:125
 msgid "Suivant"
 msgstr "Nachfolgend"
 
-#: app/templates/upload.html:136
+#: app/templates/upload.html:128
 msgid "Arrêter"
 msgstr "Stoppen"
 
-#: app/templates/upload.html:266
+#: app/templates/upload.html:247
 msgid "Veuillez choisir un label avant de passer à l’image suivante."
 msgstr ""
 "Bitte wählen Sie eine Beschriftung aus, bevor Sie mit dem nächsten Bild "
 "fortfahren."
 
-#: app/templates/upload.html:282
+#: app/templates/upload.html:262
 msgid "Erreur lors de l’enregistrement de l’image."
 msgstr "Fehler beim Speichern des Bildes."
 
-#: app/templates/upload.html:290
+#: app/templates/upload.html:269
 msgid "Toutes les images ont été annotées et enregistrées."
 msgstr "Alle Bilder wurden kommentiert und gespeichert."
 
@@ -468,4 +481,10 @@ msgstr "Alle Bilder wurden kommentiert und gespeichert."
 #~ msgid_plural "{len_type} values are required, but {len_value} were given."
 #~ msgstr[0] ""
 #~ msgstr[1] ""
+
+#~ msgid "Condition"
+#~ msgstr "Zustand"
+
+#~ msgid "Marchés (aujourd’hui)"
+#~ msgstr "Märkte (heute)"
 

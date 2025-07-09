@@ -26,7 +26,7 @@ def main():
     df = load_data()
     print(f"{len(df)} images chargées.")
 
-    N_TRIALS = 100_000
+    N_TRIALS = 1_000_000
     best = {'acc': 0.0}
 
     print(f"Lancement de la recherche aléatoire ({N_TRIALS:,} essais)…")

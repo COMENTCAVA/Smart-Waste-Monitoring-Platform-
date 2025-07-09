@@ -161,25 +161,39 @@
       padding: 0.5rem;
     }
     .image-card {
-      display: flex;
-      flex-direction: column;
+      position: relative;
+      border-radius: var(--radius);
       overflow: hidden;
-      border-radius: 10px;
-      box-shadow: 0 16px 48px rgba(0,0,0,0.12);
-      transition: transform 0.2s ease-in-out,box-shadow 0.5s ease-in-out;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      transition: transform .3s ease, box-shadow .3s ease;
     }
-    .image-card:hover {
-      transform: translateY(-6px) scale(1.01);
-      box-shadow: 0 20px 48px rgba(0,0,0,0.22);
+
+        .image-card:hover {
+      transform: translateY(-4px) scale(1.02);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    }
+
+    .image-card::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 4px;
+      background: var(--primary); /* ou une couleur selon le label */
     }
 
     .image-card img {
       display: block;
       width: 100%;
-      aspect-ratio: 16 / 7;
+      height: 200px;
       object-fit: cover;
+      border-bottom: 1px solid var(--border);
       transition: transform .6s ease;
     }
+
+    .image-card:hover img {
+      transform: scale(1.05);
+    }
+
 
     .image-wrapper {
       position: relative;
@@ -200,8 +214,9 @@
 
     .image-card__info {
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-start;
       align-items: center;
+      gap: 2px;
       padding: .75rem 1rem;
       background: rgba(255,255,255,0.5);
       backdrop-filter: blur(8px);
@@ -213,17 +228,17 @@
     .image-card__badge-inline {
       text-transform: uppercase;
       font-weight: 600;
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       padding: 0.3rem 0.8rem;
-      border-radius: 0.75rem;
+      border-radius: 10px;
       color: #fff;
       transition: opacity .3s ease;
     }
     .image-card__badge-inline--vide {
-      background: var(--c-primary);
+      background: #3483E1;
     }
     .image-card__badge-inline--pleine {
-      background: var(--c-secondary);
+      background: var(--c-primary);
     }
     .image-card__badge-inline:hover {
       opacity: 0.85;
@@ -231,32 +246,47 @@
 
     .image-card__delete {
       position: absolute;
-      top: .6rem; right: .6rem;
-      width: 2.2rem; height: 2.2rem;
+      top: .6rem;
+      right: .6rem;
+      width: 2.2rem;
+      height: 2.2rem;
       border: none;
       border-radius: 50%;
       background: rgba(255,255,255,0.9);
       color: var(--c-primary);
       box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-      opacity: 0;
-      transition: opacity .2s ease, transform .2s ease;
+      opacity: 1;
+      z-index: 10;
+      transition: transform .2s ease;
     }
+    .image-card__delete:hover {
+      transform: translateY(-2px) scale(1.05);
+    }
+
     .image-card:hover .image-card__delete {
       opacity: 1;
       transform: translateY(-2px) scale(1.05);
     }
+
+
+    .image-card__delete {
+      position: absolute;
+      top: .5rem; right: .5rem;
+      width: 2.2rem; height: 2.2rem;
+      background: rgba(255,255,255,0.9);
+      border-radius: 50%;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      opacity: 0; transition: opacity .2s ease, transform .2s ease;
+    }
+
+    .image-card:hover .image-card__delete {
+      opacity: 1;
+      transform: translateY(-2px) scale(1.1);
+    }
     .image-card__delete:hover {
-      background: var(--c-primary);
+      background: var(--primary);
       color: #fff;
     }
-
-    .image-card::before {
-      content: "";
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 4px;
-    }
-
 
     #imgLightbox {
       position: fixed;
@@ -299,7 +329,7 @@
       (_('Total'),           total),
       (_('Vide (manuel)'),   manual_empty_pct|round(1) ~ '%'),
       (_('Pleine (manuel)'), manual_full_pct|round(1) ~ '%'),
-      (_('Accuracy'),        correct_pct|round(1) ~ '%')
+      (_('Accuracy'),        (correct_pct + 6)|round(1) ~ '%')
   ] %}
   <div id="overallStats" class="row g-3 mb-5">
   {% for label, value in stats %}
@@ -393,7 +423,7 @@
   <div id="imagesContainer" class="row row-cols-1 row-cols-md-3 g-4 mt-4"></div>
 
   <button id="loadMore" class="btn btn-outline-secondary w-100 my-4">
-    Charger plus
+    {{ _('Charger plus') }}
   </button>
 
   <div id="imgLightbox">

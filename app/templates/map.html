@@ -74,11 +74,147 @@
 .popup-badge.auto {
   background: var(--c-primary);
 }
+
+#city-panel {
+  /* passer de 250px à 200px (ou 15vw si tu préfères %) */
+  flex: 0 0 200px !important;
+  max-width: 200px !important;
+
+  /* occuper toute la hauteur disponible sous la barre nav */
+  height: calc(100vh - 60px) !important;
+
+  /* si tu veux un léger décalage en bas */
+  margin-top: 10px;
+  margin-bottom: 10px;
+  overflow-y: auto;
+}
+
+
+#city-panel h5 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--c-primary);
+  margin-bottom: 0.5rem;
+  border-bottom: 2px solid var(--c-primary);
+  padding-bottom: 0.25rem;
+}
+
+#city-panel p#city-name {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--c-text-secondary);
+}
+
+#city-panel h6 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--c-secondary);
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+#city-panel ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  row-gap: 0.75rem;
+}
+
+
+#city-panel ul li {
+  background: var(--c-bg);
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+#city-panel ul li span {
+  font-weight: 600;
+  color: var(--c-primary);
+}
+
+.leaflet-control-layers {
+  background: #fff;
+  border-radius: 10px;
+  padding: 0.5rem 0.75rem;
+  font-family: 'Poppins', sans-serif;
+}
+
+.leaflet-control-layers.leaflet-control-layers-expanded {
+  background: #fff;
+}
+
+.leaflet-control-layers,
+.leaflet-control-layers-list {
+  border: none !important;
+}
+
+.leaflet-control-layers-toggle {
+  display: none;
+}
+
+.leaflet-control-layers-list {
+  margin: 0;
+  padding: 0;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+}
+
+.leaflet-control-layers-overlays label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+  font-size: 0.9rem;
+}
+
+.leaflet-control-layers-overlays input[type="checkbox"] {
+  width: 1.1rem;
+  height: 1.1rem;
+  margin: 0;
+  accent-color: var(--c-primary);
+}
+
+.leaflet-control-layers-separator {
+  height: 1px;
+  background: var(--border);
+  margin: 0.5rem 0;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+.d-flex.map-wrapper {
+  height: 100vh;
+  margin: 0;
+}
+
+#map-full {
+  flex: 1;
+  height: 100%;
+}
+
+#city-panel {
+  /* on enlève les marges “flottantes” pour rester à l’intérieur du flex */
+  margin: 0;
+  position: relative; /* ou absolute si tu veux l’emporter hors du flow */
+  /* taille et overflow inchangés */
+}
+
 </style>
 {% endblock %}
 
 {% block fullpage %}
-  <div class="d-flex" style="height: calc(100vh - 50px);">
+  <div class="d-flex map-wrapper" style="height: calc(100vh - 70px);">
     <div id="map-full" style="flex: 1;"></div>
 
     <div id="city-panel"
@@ -92,7 +228,8 @@
       <ul class="list-unstyled mb-0">
         <li>{{ _('Température') }} : <span id="weather-temp">–</span></li>
         <li>{{ _('Vent') }} : <span id="weather-wind">–</span></li>
-        <li>{{ _('Condition') }} : <span id="weather-cond">–</span></li>
+        <li>{{ _('Humidité') }} : <span id="weather-humidity">–</span>%</li>
+        <li>{{ _('Précipitations') }} : <span id="weather-precip">–</span> mm</li>
       </ul>
     </div>
   </div>
@@ -105,9 +242,16 @@
   <script defer>
   document.addEventListener('DOMContentLoaded', () => {
     const map = L.map('map-full').setView([48.8566, 2.3522], 12);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-      maxZoom:18
-    }).addTo(map);
+    L.tileLayer(
+      'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+      {
+        attribution: '&copy; OpenStreetMap &copy; CartoDB',
+        subdomains: 'abcd',
+        maxZoom: 19
+      }
+    ).addTo(map);
+
+
 
     const marketIcon = L.icon({ iconUrl: '/static/images/market-icon.png', iconSize:[20,20], iconAnchor:[16,32], popupAnchor:[0,-32] });
     const zoneIcon   = L.icon({ iconUrl: '/static/images/zone-icon.png',   iconSize:[20,20], iconAnchor:[16,32], popupAnchor:[0,-32] });
@@ -217,7 +361,6 @@
 
     const overlays = {
       "{{ _('Images (poubelles)') }}"  : imagesCluster,
-      "{{ _('Marchés (aujourd’hui)') }}": marketsCluster,
       "{{ _('Zones rencontre') }}"     : zonesCluster,
       "{{ _('Chantiers') }}"           : chantiersCluster
     };
@@ -231,7 +374,7 @@
       const lon = e.latlng.lng;
 
       L.circleMarker([lat, lon], {
-        radius:    12,
+        radius:    5,
         fillColor: 'red',
         fillOpacity: 0.8,
         stroke:    false,
@@ -239,34 +382,45 @@
       }).addTo(map);
 
       fetch(
-        `https://geocoding-api.open-meteo.com/v1/reverse` +
-        `?latitude=${lat}&longitude=${lon}` +
-        `&language={{ get_locale() }}&count=1`
-      )
-      .then(r => r.json())
-      .then(d => {
-        const p = d.results?.[0];
-        if (p) {
-          document.getElementById('city-name').textContent =
-            `${p.name}, ${p.admin1}, ${p.country}`;
-        }
+        `https://nominatim.openstreetmap.org/reverse` +
+        `?format=jsonv2&lat=${lat}&lon=${lon}`
+      , { headers: { 'Accept-Language': '{{ get_locale() }}' }})
+      .then(r => {
+        if (!r.ok) throw new Error(r.status);
+        return r.json();
       })
-      .catch(() => {
-        document.getElementById('city-name').textContent =
-          '{{ _("Inconnue") }}';
+      .then(d => {
+        const addr = d.address;
+        const name = addr.city || addr.town || addr.village || d.display_name;
+        document.getElementById('city-name').textContent = name;
+      })
+      .catch(err => {
+        console.error('Geocoding OSM échoué :', err);
+        document.getElementById('city-name').textContent = '{{ _("Inconnue") }}';
       });
+
 
       fetch(
         `https://api.open-meteo.com/v1/forecast` +
         `?latitude=${lat}&longitude=${lon}` +
-        `&current_weather=true&timezone=auto`
+        `&current_weather=true` +
+        `&hourly=relativehumidity_2m,precipitation` +
+        `&timezone=auto`
       )
       .then(r => r.json())
       .then(d => {
         const w = d.current_weather;
         document.getElementById('weather-temp').textContent = `${w.temperature}°C`;
         document.getElementById('weather-wind').textContent = `${w.windspeed} km/h`;
-        document.getElementById('weather-cond').textContent = w.weathercode;
+
+        const now = new Date(w.time).toISOString().slice(0,13) + ':00';
+        const idx = d.hourly.time.indexOf(now);
+        if (idx !== -1) {
+          document.getElementById('weather-humidity').textContent =
+            d.hourly.relativehumidity_2m[idx];
+          document.getElementById('weather-precip').textContent =
+            d.hourly.precipitation[idx];
+        }
       });
     });
 

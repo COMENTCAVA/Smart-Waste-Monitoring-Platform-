@@ -11,6 +11,7 @@ async function fetchJSON(url) {
 
 async function initCharts() {
   const ld = await fetchJSON('/api/stats/label_distribution');
+
   new Chart(
     document.getElementById('labelChart'),
     {
@@ -19,7 +20,7 @@ async function initCharts() {
         labels: ['Vide','Pleine'],
         datasets: [{
           data: [ld.manual.Vide, ld.manual.Pleine],
-          backgroundColor: ['#0d6efd','#198754']
+          backgroundColor: ['#369AED','#5BDDD7']
         }]
       },
       options: {
@@ -31,11 +32,11 @@ async function initCharts() {
   );
 
   const cfg = [
-    { id:'fileSizeChart', api:'/api/stats/file_size_distribution', label:'Images',   color:'#ffc107' },
-    { id:'contrastChart', api:'/api/stats/contrast_distribution',  label:'Contraste',color:'#dc3545' },
-    { id:'edgesChart',    api:'/api/stats/edges_distribution',     label:'Contours', color:'#6f42c1' }
+    { id:'fileSizeChart', api:'/api/stats/file_size_distribution', label:'Images',   color:'#8289F9' },
+    { id:'contrastChart', api:'/api/stats/contrast_distribution',  label:'Contraste',color:'#FF5E99' },
+    { id:'edgesChart',    api:'/api/stats/edges_distribution',     label:'Contours', color:'#E79FF5' }
   ];
-  for (const {id, api, label, color} of cfg) {
+  for (const { id, api, label, color } of cfg) {
     const d = await fetchJSON(api);
     new Chart(
       document.getElementById(id),
@@ -76,32 +77,20 @@ async function initCharts() {
         responsive: true,
         maintainAspectRatio: false,
         scales: {
-          x: {
-            title: { display: true, text: 'Date' }
-          },
-          y: {
-            beginAtZero: true,
-            title: { display: true, text: 'Nombre d’images' }
-          }
+          x: { title: { display: true, text: 'Date' } },
+          y: { beginAtZero: true, title: { display: true, text: 'Nombre d’images' } }
         },
         plugins: {
           legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: ctx => `${ctx.parsed.y} uploads le ${ctx.label}`
-            }
-          }
+          tooltip: { callbacks: { label: ctx => `${ctx.parsed.y} uploads le ${ctx.label}` } }
         }
       }
     }
   );
 
   const bubbleData = await fetchJSON('/api/stats/contrast_edges_bubble');
-
   const groups = { Vide: [], Pleine: [] };
-  bubbleData.forEach(pt => {
-    groups[pt.label]?.push(pt);
-  });
+  bubbleData.forEach(pt => { groups[pt.label]?.push(pt); });
 
   new Chart(
     document.getElementById('bubbleChart'),
@@ -112,28 +101,24 @@ async function initCharts() {
           {
             label: 'Vide',
             data: groups.Vide,
-            backgroundColor: 'rgba(13,110,253,0.5)',
-            borderColor:  'rgba(13,110,253,1)',
+            backgroundColor: 'rgba(74,144,226,0.5)',
+            borderColor:  'rgba(74,144,226,1)',
+            maxRadius: 5
           },
           {
             label: 'Pleine',
             data: groups.Pleine,
-            backgroundColor: 'rgba(25,135,84,0.5)',
-            borderColor:  'rgba(25,135,84,1)',
+            backgroundColor: 'rgba(80,227,194,0.5)',
+            borderColor:  'rgba(80,227,194,1)',
+            maxRadius: 5
           }
         ]
       },
       options: {
         maintainAspectRatio: false,
         scales: {
-          x: {
-            title: { display: true, text: 'Contraste' },
-            beginAtZero: true
-          },
-          y: {
-            title: { display: true, text: 'Contours détectés' },
-            beginAtZero: true
-          }
+          x: { title: { display: true, text: 'Contraste' }, beginAtZero: true },
+          y: { title: { display: true, text: 'Contours détectés' }, beginAtZero: true }
         },
         plugins: {
           legend: { position: 'bottom' },
@@ -141,9 +126,7 @@ async function initCharts() {
             callbacks: {
               label(ctx) {
                 const v = ctx.raw;
-                return `${ctx.dataset.label} — C: ${v.x}, E: ${v.y}, Occ: ${(
-                  v.r / 30
-                ).toFixed(2)}`;
+                return `${ctx.dataset.label} — C: ${v.x}, E: ${v.y}, Occ: ${(v.r/30).toFixed(2)}`;
               }
             }
           }

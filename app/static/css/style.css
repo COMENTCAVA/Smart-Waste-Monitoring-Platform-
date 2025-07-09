@@ -18,9 +18,7 @@ app/static/css/styles.css
   --bg-alert-success:  #d1e7dd;
   --bg-alert-danger:   #f8d7da;
   --bg-alert-info:     #cff4fc;
-}
 
-:root {
   --font-base: 'Inter', sans-serif;
   --fs-base: 1rem;
   --lh-base: 1.6;
@@ -41,6 +39,7 @@ app/static/css/styles.css
 
 /*Variables pour le mode Sombre*/
 [data-theme="dark"] {
+
   --bg-page:         #121212;
   --fg-text:         #e0e0e0;
   --link-color:      #66bfff;
@@ -161,62 +160,6 @@ html { font-family: var(--font-base); font-size: var(--fs-base); line-height: va
 .form-control {
   border-radius: .5rem;
   border: 1px solid var(--c-border);
-}
-
-.leaflet-popup-content-wrapper {
-  border-radius: 0.75rem;
-  box-shadow: 0 .5rem 1rem rgba(0,0,0,0.1);
-}
-
-.leaflet-popup-content img.popup-thumb {
-  display: block;
-  margin: 0 auto 0.5rem;
-  max-width: 120px;
-  height: auto;
-  object-fit: cover;
-  border-radius: 0.5rem;
-  box-shadow: 0 .25rem .5rem rgba(0,0,0,0.1);
-}
-
-.leaflet-popup-content .popup-info {
-  font-size: 0.875rem;
-  line-height: 1.4;
-  color: var(--fg-text);
-}
-.leaflet-popup-content .popup-info strong {
-  display: block;
-  margin-bottom: 0.25rem;
-}
-
-.leaflet-control-layers-overlays label {
-  display: flex;
-  align-items: center;
-}
-.leaflet-control-layers-overlays input[type="checkbox"] {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-
-  width: 18px;
-  height: 18px;
-  margin-right: 8px;
-  border: 2px solid #007bff;
-  border-radius: 4px;
-  background-color: #fff;
-  cursor: pointer;
-  position: relative;
-}
-
-.leaflet-control-layers-overlays input[type="checkbox"]:checked::after {
-  content: '';
-  position: absolute;
-  top: 2px;
-  left: 5px;
-  width: 5px;
-  height: 10px;
-  border: solid #007bff;
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
 }
 
 #splash-screen {

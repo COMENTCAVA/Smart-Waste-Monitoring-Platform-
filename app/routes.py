@@ -117,38 +117,39 @@ def optimize_settings():
     Lance en arrière-plan la recherche aléatoire des meilleurs seuils,
     met à jour la table Setting, et relance recompute_all_predictions().
     """
-    def worker():
-        df = load_data()
-        N_TRIALS = 100_000
-        best = {'acc': 0.0}
-        for _ in range(N_TRIALS):
-            B  = random.uniform(0,   255)
-            S  = random.uniform(50e3, 500e3)
-            C  = random.uniform(0,   200)
-            E  = random.uniform(100, 50e3)
-            D  = random.uniform(0.1, 0.7)
-            SG = random.uniform(0,  300)
-            acc = classify_batch(df, B, S, C, E, D, SG)
-            if acc > best['acc']:
-                best.update(acc=acc, B=B, S=S, C=C, E=E, D=D, SG=SG)
+    print("Searching best accuracy ...")
+    df = load_data()
+    N_TRIALS = 100_000
+    best = {'acc': 0.0}
+    for _ in range(N_TRIALS):
+        B  = random.uniform(0,   255)
+        S  = random.uniform(50e3, 500e3)
+        C  = random.uniform(0,   200)
+        E  = random.uniform(100, 50e3)
+        D  = random.uniform(0.1, 0.7)
+        SG = random.uniform(0,  300)
+        acc = classify_batch(df, B, S, C, E, D, SG)
+        if acc > best['acc']:
+            best.update(acc=acc, B=B, S=S, C=C, E=E, D=D, SG=SG)
+        if _ % 10_000 == 0:
+            print(f"  • Essais {_:,}/{N_TRIALS:,} — meilleur acc: {best['acc']:.2f}%")
 
-        #mise à jour en base
-        keys = [
+    #mise à jour en base
+    keys = [
             'BRIGHTNESS_THRESHOLD', 'SIZE_THRESHOLD', 'CONTRAST_THRESHOLD',
             'EDGES_THRESHOLD', 'DARK_RATIO_THRESHOLD', 'STD_GRAY_THRESHOLD'
-        ]
-        vals = [best['B'], best['S'], best['C'], best['E'], best['D'], best['SG']]
-        for key, val in zip(keys, vals):
-            setting = Setting.query.get(key)
-            if setting:
-                setting.value = val
-            else:
-                db.session.add(Setting(key=key, value=val))
-        db.session.commit()
-        recompute_all_predictions()
-        print("Found the best accuracy")
+    ]
+    vals = [best['B'], best['S'], best['C'], best['E'], best['D'], best['SG']]
+    for key, val in zip(keys, vals):
+        setting = Setting.query.get(key)
+        if setting:
+            setting.value = val
+        else:
+            db.session.add(Setting(key=key, value=val))
+    db.session.commit()
+    recompute_all_predictions()
+    print("Found the best accuracy")
 
-    threading.Thread(target=worker, daemon=True).start()
     return jsonify(success=True)
 
 @main_bp.route('/dashboard', methods=['GET'])
@@ -381,7 +382,7 @@ def api_contrast_edges_bubble():
         data.append({
             'x': round(c, 1),
             'y': int(e),
-            'r': max(2, round(occ * 30)),
+            'r': max(2, round(occ * 10)),
             'label': lab
         })
 
